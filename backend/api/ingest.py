@@ -11,6 +11,8 @@ from fastapi.responses import JSONResponse
 
 from parsers.router import route_file, route_youtube
 from graphs.ingestion_graph import run_ingestion
+from core.config import get_settings
+from api.jobs import create_job, update_job
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -18,6 +20,7 @@ router = APIRouter()
 
 @router.post("/api/ingest")
 async def ingest(
+    background_tasks: BackgroundTasks,
     subject: str = Form(..., description="Subject name e.g. 'History'"),
     topic: str = Form(..., description="Topic/chapter name e.g. 'Mughal Empire'"),
     file: Optional[UploadFile] = File(None),
@@ -33,11 +36,13 @@ async def ingest(
     - `youtube_url` — YouTube URL for transcript extraction
     """
     # ── 1. Validate inputs ────────────────────────────────────────────────────
-    sources = sum([
-        file is not None,
-        bool(pasted_text and pasted_text.strip()),
-        bool(youtube_url and youtube_url.strip()),
-    ])
+    sources = sum(
+        [
+            file is not None,
+            bool(pasted_text and pasted_text.strip()),
+            bool(youtube_url and youtube_url.strip()),
+        ]
+    )
     if sources == 0:
         raise HTTPException(
             status_code=422,
@@ -73,34 +78,80 @@ async def ingest(
         raise HTTPException(status_code=500, detail=f"Failed to parse source: {e}")
 
     if not raw_text.strip():
-        raise HTTPException(status_code=422, detail="Extracted text is empty — check the file quality.")
-
-    # ── 3. Run ingestion graph ────────────────────────────────────────────────
-    try:
-        result = await run_ingestion(
-            raw_text=raw_text,
-            subject=subject,
-            topic=topic,
-            source_name=source_name,
+        raise HTTPException(
+            status_code=422, detail="Extracted text is empty — check the file quality."
         )
-    except Exception as e:
-        logger.error(f"[Ingest] Pipeline failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Ingestion pipeline failed: {e}")
+
+    # ── 2.5. Enforce max character limit ─────────────────────────────────────
+    settings = get_settings()
+    char_count = len(raw_text)
+    if char_count > settings.max_ingest_chars:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Document is too large for high-quality ingestion. "
+                f"Extracted {char_count:,} characters, but the maximum is {settings.max_ingest_chars:,}. "
+                f"Please split your document into smaller sections (ideally under {settings.max_ingest_chars:,} characters / ~40 pages) "
+                f"for optimal AI processing and note quality."
+            ),
+        )
+
+    logger.info(
+        f"[Ingest] Text size: {char_count:,} chars (limit: {settings.max_ingest_chars:,})"
+    )
+
+    # ── 3. Run ingestion graph (in background) ────────────────────────────────
+    job_id = create_job()
+    
+    async def run_ingestion_background(
+        job_id: str, raw_text: str, subject: str, topic: str, source_name: str
+    ):
+        try:
+            result = await run_ingestion(
+                raw_text=raw_text,
+                subject=subject,
+                topic=topic,
+                source_name=source_name,
+            )
+            
+            chapters_summary = [
+                {"title": c["title"], "preview": c["content"][:250] + "..."}
+                for c in result.get("chapters", [])
+            ]
+            wiki_result = result.get("wiki_result") or {}
+            
+            final_result = {
+                "success": True,
+                "source": source_name,
+                "subject": subject,
+                "topic": topic,
+                "chunks_added": result.get("chunks_saved", 0),
+                "completeness_score": result.get("completeness_score", 0),
+                "chapters": chapters_summary,
+                "mindmap": result.get("mindmap"),
+                "wiki_pages_created": wiki_result.get("pages_created", 0),
+                "wiki_pages_updated": wiki_result.get("pages_updated", 0),
+                "warnings": result.get("errors", []),
+            }
+            update_job(job_id, "completed", result=final_result)
+        except Exception as e:
+            logger.error(f"[Ingest] Background Pipeline failed: {e}", exc_info=True)
+            update_job(job_id, "failed", error=str(e))
+
+    background_tasks.add_task(
+        run_ingestion_background, job_id, raw_text, subject, topic, source_name
+    )
 
     # ── 4. Build response ─────────────────────────────────────────────────────
-    chapters_summary = [
-        {"title": c["title"], "preview": c["content"][:250] + "..."}
-        for c in result.get("chapters", [])
-    ]
-
-    return JSONResponse({
-        "success": True,
-        "source": source_name,
-        "subject": subject,
-        "topic": topic,
-        "chunks_added": result["chunks_saved"],
-        "completeness_score": result["completeness_score"],
-        "chapters": chapters_summary,
-        "mindmap": result.get("mindmap"),
-        "warnings": result.get("errors", []),
-    })
+    return JSONResponse(
+        {
+            "success": True,
+            "status": "processing",
+            "job_id": job_id,
+            "message": "Ingestion started in the background.",
+            "source": source_name,
+            "subject": subject,
+            "topic": topic,
+        },
+        status_code=202
+    )

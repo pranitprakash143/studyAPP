@@ -18,6 +18,11 @@ import {
 import { getAIHeaders, HARDCODED_SUBJECTS } from "@/lib/settings";
 import CustomDropdown from "@/components/CustomDropdown";
 
+// ── Ingestion limits (must match backend/core/config.py) ─────────────────────
+const MAX_UPLOAD_SIZE_MB = 15;
+const MAX_INGEST_CHARS = 80_000;
+const SOFT_WARN_CHARS = 60_000;
+
 type IngestionState = "idle" | "uploading" | "ocr_extracting" | "formatting" | "indexing" | "success" | "error";
 
 interface ExtractedSection {
@@ -26,19 +31,21 @@ interface ExtractedSection {
 }
 
 export interface PipelineNode {
-  id: "upload" | "parse" | "clean" | "structure" | "embed" | "mindmap";
+  id: "analyze" | "upload" | "parse" | "clean" | "structure" | "subtopic" | "embed" | "mindmap";
   label: string;
   description: string;
   status: "pending" | "processing" | "success" | "failed";
 }
 
 const INITIAL_PIPELINE_NODES: PipelineNode[] = [
+  { id: "analyze", label: "Document Structure Analysis", description: "AI reads full document to map chapters, subtopics, themes, and glossary terms", status: "pending" },
   { id: "upload", label: "Document Reception", description: "Verifying subject folders and uploading file stream", status: "pending" },
   { id: "parse", label: "Text Decoupling & OCR", description: "Scanning pages, processing text fragments, and extracting raw contents", status: "pending" },
   { id: "clean", label: "LangGraph Content Cleanse", description: "Standardizing typography formats and stripping structural noise", status: "pending" },
   { id: "structure", label: "TOC Academic Synthesis", description: "Structuring content into organized chapters, highlights, and headers", status: "pending" },
-  { id: "embed", label: "Vector Database Indexing", description: "Generating vector embeddings and indexing chunks into ChromaDB RAG store", status: "pending" },
-  { id: "mindmap", label: "2D Mindmap Synthesis", description: "Compiling semantic relationships to map cross-chapter nodes", status: "pending" }
+  { id: "subtopic", label: "Subtopic-Level Indexing", description: "Splitting chapters into granular subtopic chunks for precise semantic retrieval", status: "pending" },
+  { id: "embed", label: "Vector Database Indexing", description: "Generating vector embeddings and indexing subtopic chunks into ChromaDB RAG store", status: "pending" },
+  { id: "mindmap", label: "2D Mindmap Synthesis", description: "Compiling semantic relationships to map cross-chapter concept nodes", status: "pending" }
 ];
 
 export default function Upload() {
@@ -50,14 +57,12 @@ export default function Upload() {
     icon: "📚",
   }));
   
-  // Form fields
   const [subject, setSubject] = useState(HARDCODED_SUBJECTS[0]);
   const [topic, setTopic] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [pastedText, setPastedText] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Loading state
   const [status, setStatus] = useState<IngestionState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [ingestedResult, setIngestedResult] = useState<{
@@ -65,14 +70,13 @@ export default function Upload() {
     topic: string;
     source: string;
     sections: ExtractedSection[];
+    subtopicCount?: number;
   } | null>(null);
 
-  // --- Ingestion Pipeline States & Hooks ---
   const [pipelineNodes, setPipelineNodes] = useState<PipelineNode[]>(INITIAL_PIPELINE_NODES);
   const [activePipelineIndex, setActivePipelineIndex] = useState<number>(-1);
   const pipelineIntervalRef = useRef<any>(null);
 
-  // Cleanup timers on page unmount
   useEffect(() => {
     return () => {
       if (pipelineIntervalRef.current) clearTimeout(pipelineIntervalRef.current);
@@ -102,12 +106,19 @@ export default function Upload() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const sizeMB = file.size / (1024 * 1024);
+      if (sizeMB > MAX_UPLOAD_SIZE_MB) {
+        setErrorMessage(`File is too large (${sizeMB.toFixed(1)} MB). Maximum allowed size is ${MAX_UPLOAD_SIZE_MB} MB for optimal AI processing.`);
+        setStatus("error");
+        return;
+      }
       setSelectedFile(file);
-      // Auto-populate topic with file base name minus extension
       const baseName = file.name.replace(/\.[^/.]+$/, "");
       if (!topic) {
         setTopic(baseName);
       }
+      setStatus("idle");
+      setErrorMessage("");
     }
   };
 
@@ -117,7 +128,7 @@ export default function Upload() {
     
     if (pipelineIntervalRef.current) clearTimeout(pipelineIntervalRef.current);
     
-    const durations = [1500, 2500, 3500, 4000, 3000, 3000]; 
+    const durations = [2000, 1500, 2500, 3500, 4000, 3000, 3000, 3000]; 
     let currentIndex = 0;
     
     setPipelineNodes(prev => prev.map((n, idx) => idx === 0 ? { ...n, status: "processing" } : n));
@@ -170,6 +181,16 @@ export default function Upload() {
       return;
     }
 
+    if (activeTab === "paste" && pastedText.length > MAX_INGEST_CHARS) {
+      setErrorMessage(
+        `Text is too long (${pastedText.length.toLocaleString()} characters). ` +
+        `Maximum allowed is ${MAX_INGEST_CHARS.toLocaleString()} characters (~40 pages) for optimal AI processing. ` +
+        `Please split your material into smaller sections.`
+      );
+      setStatus("error");
+      return;
+    }
+
     setStatus("uploading");
     setErrorMessage("");
     setIngestedResult(null);
@@ -201,18 +222,59 @@ export default function Upload() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        completePipelineSuccess();
-        setIngestedResult({
-          subject: data.subject,
-          topic: data.topic,
-          source: data.source,
-          sections: data.sections,
-        });
-        setStatus("success");
-        
-        setSelectedFile(null);
-        setYoutubeUrl("");
-        setPastedText("");
+        if (data.status === "processing" && data.jobId) {
+          // Poll for status
+          const pollJob = async (jobId: string) => {
+            try {
+              const jobRes = await fetch(`/api/jobs/${jobId}`);
+              const jobData = await jobRes.json();
+              if (jobData.status === "completed") {
+                completePipelineSuccess();
+                const result = jobData.result;
+                const subtopicCount = result.sections?.length || 0;
+                setIngestedResult({
+                  subject: result.subject,
+                  topic: result.topic,
+                  source: result.source,
+                  sections: result.chapters, // result.chapters comes from backend
+                  subtopicCount,
+                });
+                setStatus("success");
+                setSelectedFile(null);
+                setYoutubeUrl("");
+                setPastedText("");
+              } else if (jobData.status === "failed") {
+                completePipelineFailed();
+                setErrorMessage(jobData.error || "Ingestion pipeline encountered an error.");
+                setStatus("error");
+              } else {
+                // Still processing, poll again after 2 seconds
+                setTimeout(() => pollJob(jobId), 2000);
+              }
+            } catch (err) {
+              completePipelineFailed();
+              setErrorMessage("Error checking job status.");
+              setStatus("error");
+            }
+          };
+          pollJob(data.jobId);
+        } else {
+          // Synchronous response fallback
+          completePipelineSuccess();
+          const subtopicCount = data.sections?.length || 0;
+          setIngestedResult({
+            subject: data.subject,
+            topic: data.topic,
+            source: data.source,
+            sections: data.sections,
+            subtopicCount,
+          });
+          setStatus("success");
+          
+          setSelectedFile(null);
+          setYoutubeUrl("");
+          setPastedText("");
+        }
       } else {
         completePipelineFailed();
         setErrorMessage(data.error || "Ingestion pipeline encountered an error.");
@@ -235,7 +297,6 @@ export default function Upload() {
         
         <div className="flex-1 overflow-y-auto">
           <main className="p-8 max-w-5xl mx-auto">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-400">
             <UploadCloud className="h-6 w-6" />
@@ -251,7 +312,6 @@ export default function Upload() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Ingest Form */}
           <div className="lg:col-span-2 space-y-6">
             <form
               onSubmit={handleIngest}
@@ -259,7 +319,6 @@ export default function Upload() {
             >
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Ingestion Inflow</h2>
 
-              {/* Form Metadata */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5">
@@ -287,7 +346,6 @@ export default function Upload() {
                 </div>
               </div>
 
-              {/* Tab Selector */}
               <div className="flex border-b border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
@@ -329,7 +387,6 @@ export default function Upload() {
                 </button>
               </div>
 
-              {/* Tab Content */}
               <div className="min-h-36 flex flex-col justify-center">
                 {activeTab === "file" && (
                   <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-8 bg-slate-50/50 dark:bg-[#151c2f]/20 hover:bg-slate-50 dark:hover:bg-[#151c2f]/45 transition duration-150 relative cursor-pointer group">
@@ -349,6 +406,7 @@ export default function Upload() {
                       <div className="text-center">
                         <span className="font-bold text-sm text-slate-600 dark:text-slate-300 block">Drag & drop or select a file</span>
                         <span className="text-xs text-slate-400 dark:text-slate-500 mt-1 block">Supports PDF, Word (.docx), or JPG/PNG (OCR)</span>
+                        <span className="text-[10px] text-indigo-400/70 dark:text-indigo-500/60 mt-1 block">Maximum: {MAX_UPLOAD_SIZE_MB} MB • Optimal under 10 MB (~{MAX_INGEST_CHARS.toLocaleString()} chars)</span>
                       </div>
                     )}
                   </div>
@@ -380,11 +438,24 @@ export default function Upload() {
                       placeholder="Paste textbook segments, transcript logs, or summaries here..."
                       className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-[#151c2f]/40 text-sm focus:outline-none focus:border-indigo-500 transition w-full resize-none font-mono"
                     />
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-slate-400">
+                        {pastedText.length.toLocaleString()} / {MAX_INGEST_CHARS.toLocaleString()} characters
+                      </span>
+                      {pastedText.length > SOFT_WARN_CHARS && pastedText.length < MAX_INGEST_CHARS && (
+                        <span className="text-amber-500 font-medium">⚠ Approaching limit</span>
+                      )}
+                      {pastedText.length >= MAX_INGEST_CHARS && (
+                        <span className="text-rose-500 font-bold">✕ Limit reached — please shorten</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 leading-normal mt-1">
+                      For best AI note quality, keep pasted text under {SOFT_WARN_CHARS.toLocaleString()} characters (~25 pages). Max: {MAX_INGEST_CHARS.toLocaleString()}.
+                    </span>
                   </div>
                 )}
               </div>
 
-              {/* Submit / Progress State Panel */}
               <div className="border-t border-slate-100 dark:border-slate-800 pt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 {status !== "idle" && status !== "success" && status !== "error" ? (
                   <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 text-sm">
@@ -392,8 +463,8 @@ export default function Upload() {
                     <span>
                       {status === "uploading" && "Reading document contents..."}
                       {status === "ocr_extracting" && "Extracting text from scan / captions..."}
-                      {status === "formatting" && "LangGraph: planning structure & formatting notes..."}
-                      {status === "indexing" && "Saving chapters to knowledge base..."}
+                      {status === "formatting" && "LangGraph: analyzing structure & formatting notes..."}
+                      {status === "indexing" && "Saving subtopic chunks to knowledge base..."}
                     </span>
                   </div>
                 ) : (
@@ -413,7 +484,6 @@ export default function Upload() {
               </div>
             </form>
 
-            {/* Ingestion Pipeline Tracker */}
             {status !== "idle" && (
               <div className="bg-white dark:bg-[#111726] rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6 space-y-6 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -443,7 +513,6 @@ export default function Upload() {
                   </div>
                 </div>
 
-                {/* Custom Scoped CSS Stylesheet */}
                 <style dangerouslySetInnerHTML={{ __html: `
                   @keyframes pulse-amber {
                     0%, 100% {
@@ -486,7 +555,6 @@ export default function Upload() {
                   }
                 `}} />
 
-                {/* Vertical Nodes Container */}
                 <div className="space-y-0 pl-1 select-none">
                   {pipelineNodes.map((node, idx) => {
                     const isPending = node.status === "pending";
@@ -496,12 +564,10 @@ export default function Upload() {
                     
                     return (
                       <div key={node.id} className="relative pl-10 pb-8 last:pb-2 group text-left">
-                        {/* Connecting line to next node */}
                         {idx < pipelineNodes.length - 1 && (
                           <div className={`absolute left-[15px] top-[30px] bottom-0 w-[2px] rounded-full transition-all duration-500 ${getLineClass(idx)}`} />
                         )}
 
-                        {/* Circular status indicator */}
                         <div className={`absolute left-0 top-0 h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 ${
                           isSuccess 
                             ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500 text-emerald-500 dark:text-emerald-400 animate-pulse-emerald" 
@@ -522,7 +588,6 @@ export default function Upload() {
                           )}
                         </div>
 
-                        {/* Content Details */}
                         <div className="flex flex-col text-left transition-all duration-300">
                           <div className="flex items-center gap-2">
                             <span className={`text-sm font-bold transition-colors duration-300 ${
@@ -560,7 +625,6 @@ export default function Upload() {
                             {node.description}
                           </span>
 
-                          {/* Diagnostic Code Box */}
                           {isFailed && errorMessage && (
                             <div className="mt-3 p-4 rounded-xl bg-slate-900 border border-slate-800 text-left font-mono text-xs text-rose-400 shadow-inner overflow-x-auto max-w-full animate-in slide-in-from-top-2 duration-300">
                               <div className="flex items-center gap-2 mb-2 text-rose-500 border-b border-slate-800 pb-1.5 font-bold uppercase tracking-wider text-[10px]">
@@ -579,7 +643,6 @@ export default function Upload() {
               </div>
             )}
 
-            {/* Error Message Fallback */}
             {status === "error" && !pipelineNodes.some(n => n.status === "failed") && (
               <div className="bg-rose-500/5 border border-rose-500/20 p-4 rounded-xl flex items-start gap-3 text-sm text-rose-600 dark:text-rose-400">
                 <AlertCircle className="h-5 w-5 shrink-0" />
@@ -591,7 +654,6 @@ export default function Upload() {
             )}
           </div>
 
-          {/* Side Feedback Panel (Upload success results) */}
           <div className="space-y-6">
             <div className="bg-white dark:bg-[#111726] rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6 relative min-h-72 flex flex-col justify-between">
               
@@ -617,7 +679,14 @@ export default function Upload() {
                       </div>
                     </div>
                     
-                    <h3 className="text-xs uppercase font-bold text-slate-400 mb-2">Chapters Structured ({ingestedResult.sections.length})</h3>
+                    <h3 className="text-xs uppercase font-bold text-slate-400 mb-2">
+                      Chapters Structured ({ingestedResult.sections.length})
+                      {ingestedResult.subtopicCount && ingestedResult.subtopicCount > ingestedResult.sections.length && (
+                        <span className="text-indigo-500 dark:text-indigo-400 ml-1">
+                          • {ingestedResult.subtopicCount} Subtopics
+                        </span>
+                      )}
+                    </h3>
                     <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                       {ingestedResult.sections.map((sec, idx) => (
                         <div key={idx} className="text-xs p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-semibold text-slate-700 dark:text-slate-200">

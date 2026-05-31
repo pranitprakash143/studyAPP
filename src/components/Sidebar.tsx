@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Palette,
+  Network,
 } from "lucide-react";
 import { loadSettings, saveSettings } from "@/lib/settings";
 import CustomDropdown from "@/components/CustomDropdown";
@@ -91,6 +92,7 @@ export default function Sidebar() {
     { name: "Quiz Engine", href: "/quiz", icon: Award },
     { name: "Socratic Coach", href: "/socratic", icon: MessageSquare },
     { name: "PYQ Analysis", href: "/pyq", icon: BarChart2 },
+    { name: "Wiki Explorer", href: "/wiki", icon: Network },
     { name: "Settings", href: "/settings", icon: SettingsIcon },
   ];
 

@@ -28,8 +28,6 @@ services:
       dockerfile: Dockerfile
     container_name: prepagent-backend
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     depends_on:
       - chromadb        # Start after chromadb; retry logic in main.py handles readiness
     env_file:
@@ -57,13 +55,12 @@ services:
       dockerfile: Dockerfile.nextjs
     container_name: prepagent-nextjs
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+      # Use dynamic host logic in Next.js or point to the same domain:
+      - NEXT_PUBLIC_BACKEND_URL=https://${DOMAIN:-localhost}
       - BACKEND_URL=http://backend:8000   # Server-side proxy URL (internal Docker network)
       - NODE_ENV=production
     volumes:
@@ -71,12 +68,34 @@ services:
     networks:
       - prepagent-net
 
-
+  # ── Caddy Reverse Proxy ────────────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: prepagent-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nextjs
+      - backend
+    networks:
+      - prepagent-net
 # ── Volumes ────────────────────────────────────────────────────────────────
 volumes:
   chroma_data:
     driver: local
   backend_uploads:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
     driver: local
 
 # ── Networks ──────────────────────────────────────────────────────────────

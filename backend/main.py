@@ -13,6 +13,8 @@ from api.health import router as health_router
 from api.ingest import router as ingest_router
 from api.query import router as query_router
 from api.subjects import router as subjects_router
+from api.wiki import router as wiki_router
+from api.jobs import router as jobs_router
 
 # ── Logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -78,8 +80,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Routers ───────────────────────────────────────────────────────────────────
+# ── Routers ─────────────────────────────────────────────────────────────────────────────
 app.include_router(health_router, tags=["health"])
 app.include_router(ingest_router, tags=["ingestion"])
-app.include_router(query_router, tags=["retrieval"])
+app.include_router(query_router, tags=["search"])
 app.include_router(subjects_router, tags=["subjects"])
+app.include_router(wiki_router, tags=["wiki"])
+app.include_router(jobs_router, tags=["jobs"])

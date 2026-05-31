@@ -39,7 +39,7 @@ import { getAIHeaders, HARDCODED_SUBJECTS } from "@/lib/settings";
 import dynamic from "next/dynamic";
 import CustomDropdown, { DropdownOption } from "@/components/CustomDropdown";
 
-const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), { ssr: false });
+import ReactFlowGraph from "@/components/ReactFlowGraph";
 
 const drawRoundedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
   if (ctx.roundRect) {
@@ -331,9 +331,7 @@ export default function SubjectBinder() {
   // Mindmap state
   const [mindmapData, setMindmapData] = useState<{ nodes: any[], links: any[] } | null>(null);
   const [isDark, setIsDark] = useState(false);
-  const [hoverNode, setHoverNode] = useState<any>(null);
-  const [neighborsMap, setNeighborsMap] = useState<Map<string, Set<string>>>(new Map());
-  const fgRef = useRef<any>(null);
+  
 
   // Highlights, Selection, & Interactive Notes States
   const [highlights, setHighlights] = useState<any[]>([]);
@@ -1632,43 +1630,12 @@ export default function SubjectBinder() {
     return () => observer.disconnect();
   }, []);
 
-  // Compute connections map when mindmapData is set
+    // Center and fit the graph after loading or activeTab change
   useEffect(() => {
-    if (!mindmapData) {
-      setNeighborsMap(new Map());
-      return;
-    }
-    const map = new Map<string, Set<string>>();
-    mindmapData.nodes.forEach(n => map.set(n.id, new Set()));
-    mindmapData.links.forEach(l => {
-      const sId = typeof l.source === 'object' ? l.source.id : l.source;
-      const tId = typeof l.target === 'object' ? l.target.id : l.target;
-      if (map.has(sId)) map.get(sId)!.add(tId);
-      if (map.has(tId)) map.get(tId)!.add(sId);
-    });
-    setNeighborsMap(map);
-  }, [mindmapData]);
-
-  // Center and fit the graph after loading or activeTab change
-  useEffect(() => {
-    if (fgRef.current && mindmapData && activeTab === "mindmap") {
-      setTimeout(() => {
-        fgRef.current.zoomToFit(400, 60);
-      }, 500);
-    }
   }, [mindmapData, activeTab]);
 
   // Search Node
   const handleSearchNode = (query: string) => {
-    if (!query.trim() || !mindmapData || !fgRef.current) return;
-    const match = mindmapData.nodes.find(n => 
-      (n.label || '').toLowerCase().includes(query.toLowerCase()) ||
-      (n.id || '').toLowerCase().includes(query.toLowerCase())
-    );
-    if (match) {
-      fgRef.current.centerAt(match.x, match.y, 500);
-      fgRef.current.zoom(2.2, 500);
-    }
   };
 
   // Fetch highlights from DB for current subject
@@ -3133,263 +3100,21 @@ export default function SubjectBinder() {
                           <span className="text-sm">Loading Neural Graph...</span>
                         </div>
                       ) : mindmapData ? (
-                        <>
-                          <ForceGraph2D
-                            ref={fgRef}
-                            graphData={mindmapData}
-                            nodeLabel="label"
-                            nodeAutoColorBy="id"
-                            linkDirectionalArrowLength={4}
-                            linkDirectionalArrowRelPos={1}
-                            linkCurvature={0.15}
-                            
-                            // Highlight links connected to hovered node
-                            linkWidth={link => {
-                              if (!hoverNode) return 1.5;
-                              const sId = typeof link.source === 'object' ? link.source.id : link.source;
-                              const tId = typeof link.target === 'object' ? link.target.id : link.target;
-                              return sId === hoverNode.id || tId === hoverNode.id ? 3.0 : 0.75;
-                            }}
-                            
-                            // Link colors
-                            linkColor={link => {
-                              const sId = typeof link.source === 'object' ? link.source.id : link.source;
-                              const tId = typeof link.target === 'object' ? link.target.id : link.target;
-                              const isHighlighted = !hoverNode || sId === hoverNode.id || tId === hoverNode.id;
-                              if (isDark) {
-                                return isHighlighted ? 'rgba(99, 102, 241, 0.5)' : 'rgba(255, 255, 255, 0.04)';
-                              } else {
-                                return isHighlighted ? 'rgba(99, 102, 241, 0.35)' : 'rgba(0, 0, 0, 0.03)';
-                              }
-                            }}
-                            
-                            // Dynamic particles along links
-                            linkDirectionalParticles={link => {
-                              if (!hoverNode) return 2;
-                              const sId = typeof link.source === 'object' ? link.source.id : link.source;
-                              const tId = typeof link.target === 'object' ? link.target.id : link.target;
-                              return sId === hoverNode.id || tId === hoverNode.id ? 4 : 0;
-                            }}
-                            linkDirectionalParticleWidth={link => {
-                              if (!hoverNode) return 2;
-                              const sId = typeof link.source === 'object' ? link.source.id : link.source;
-                              const tId = typeof link.target === 'object' ? link.target.id : link.target;
-                              return sId === hoverNode.id || tId === hoverNode.id ? 3 : 1.5;
-                            }}
-                            linkDirectionalParticleSpeed={0.005}
-                            linkDirectionalParticleColor={() => isDark ? '#a5b4fc' : '#6366f1'} // indigo glow
-                            
-                            onNodeHover={node => setHoverNode(node)}
-                            onNodeDragEnd={node => {
-                              node.fx = node.x;
-                              node.fy = node.y;
-                            }}
-                            
-                            nodeCanvasObject={(node: any, ctx, globalScale) => {
-                              const label = node.label || node.id;
-                              const fontSize = 12 / globalScale;
-                              ctx.font = `600 ${fontSize}px system-ui, -apple-system, sans-serif`;
-                              const textWidth = ctx.measureText(label).width;
-                              
-                              const dotSize = fontSize * 0.35;
-                              const gap = fontSize * 0.45;
-                              const paddingH = fontSize * 0.8;
-                              const paddingV = fontSize * 0.5;
-                              
-                              const width = textWidth + dotSize + gap + paddingH * 2;
-                              const height = fontSize + paddingV * 2;
-                              const x = node.x - width / 2;
-                              const y = node.y - height / 2;
-                              const radius = height / 2;
-                              
-                              node.__bckgDimensions = [width, height];
-                              
-                              // Fading effect based on hover
-                              let opacity = 1.0;
-                              if (hoverNode) {
-                                const isSelf = node.id === hoverNode.id;
-                                const isNeighbor = neighborsMap.get(hoverNode.id)?.has(node.id);
-                                if (!isSelf && !isNeighbor) {
-                                  opacity = 0.15;
-                                }
-                              }
-                              
-                              // Draw card background
-                              ctx.fillStyle = isDark 
-                                ? `rgba(15, 23, 42, ${opacity * 0.9})` 
-                                : `rgba(255, 255, 255, ${opacity * 0.95})`;
-                                
-                              // Shadow
-                              ctx.shadowColor = isDark ? `rgba(0, 0, 0, ${opacity * 0.5})` : `rgba(0, 0, 0, ${opacity * 0.12})`;
-                              ctx.shadowBlur = 6 / globalScale;
-                              ctx.shadowOffsetX = 0;
-                              ctx.shadowOffsetY = 2 / globalScale;
-                              
-                              drawRoundedRect(ctx, x, y, width, height, radius);
-                              ctx.fill();
-                              
-                              ctx.shadowBlur = 0;
-                              ctx.shadowOffsetY = 0; // reset
-                              
-                              // Draw glowing border
-                              const isHovered = hoverNode && node.id === hoverNode.id;
-                              ctx.strokeStyle = isHovered 
-                                ? (isDark ? '#818cf8' : '#4f46e5')
-                                : (node.color || '#6366f1');
-                              ctx.lineWidth = (isHovered ? 2.5 : 1.5) / globalScale;
-                              ctx.stroke();
-                              
-                              // Draw category dot
-                              ctx.beginPath();
-                              ctx.arc(x + paddingH + dotSize / 2, node.y, dotSize / 2, 0, 2 * Math.PI);
-                              ctx.fillStyle = node.color || '#6366f1';
-                              ctx.globalAlpha = opacity;
-                              ctx.fill();
-                              
-                              // Draw text label
-                              ctx.textAlign = 'left';
-                              ctx.textBaseline = 'middle';
-                              ctx.fillStyle = isDark 
-                                ? `rgba(248, 250, 252, ${opacity})` 
-                                : `rgba(15, 23, 42, ${opacity})`;
-                              ctx.fillText(label, x + paddingH + dotSize + gap, node.y);
-                              
-                              ctx.globalAlpha = 1.0; // reset
-                            }}
-                            
-                            nodePointerAreaPaint={(node: any, color, ctx) => {
-                              ctx.fillStyle = color;
-                              const dims = node.__bckgDimensions;
-                              if (dims) {
-                                const [width, height] = dims;
-                                const x = node.x - width / 2;
-                                const y = node.y - height / 2;
-                                const radius = height / 2;
-                                drawRoundedRect(ctx, x, y, width, height, radius);
-                                ctx.fill();
-                              }
-                            }}
-                            
-                            linkCanvasObjectMode={() => 'after'}
-                            linkCanvasObject={(link: any, ctx, globalScale) => {
-                              const label = link.label;
-                              if (!label) return;
-                              
-                              const start = link.source;
-                              const end = link.target;
-                              if (typeof start !== 'object' || typeof end !== 'object') return;
-                              
-                              const fontSize = 8.5 / globalScale;
-                              ctx.font = `500 ${fontSize}px system-ui, -apple-system, sans-serif`;
-                              
-                              const x = (start.x + end.x) / 2;
-                              const y = (start.y + end.y) / 2;
-                              const angle = Math.atan2(end.y - start.y, end.x - start.x);
-                              
-                              let textAngle = angle;
-                              if (textAngle > Math.PI / 2 || textAngle < -Math.PI / 2) {
-                                textAngle += Math.PI;
-                              }
-                              
-                              ctx.save();
-                              ctx.translate(x, y);
-                              ctx.rotate(textAngle);
-                              
-                              const textWidth = ctx.measureText(label).width;
-                              
-                              // Dim link text if hovered node is active but not connected
-                              let opacity = 0.85;
-                              if (hoverNode) {
-                                const sId = start.id;
-                                const tId = end.id;
-                                if (sId !== hoverNode.id && tId !== hoverNode.id) {
-                                  opacity = 0.1;
-                                }
-                              }
-                              
-                              // Draw label card
-                              ctx.fillStyle = isDark 
-                                ? `rgba(11, 15, 25, ${opacity * 0.95})` 
-                                : `rgba(248, 250, 252, ${opacity * 0.95})`;
-                              
-                              ctx.strokeStyle = isDark
-                                ? `rgba(255, 255, 255, ${opacity * 0.1})`
-                                : `rgba(0, 0, 0, ${opacity * 0.08})`;
-                              ctx.lineWidth = 1 / globalScale;
-                              
-                              const boxW = textWidth + 6 / globalScale;
-                              const boxH = fontSize + 4 / globalScale;
-                              drawRoundedRect(ctx, -boxW / 2, -boxH / 2, boxW, boxH, boxH / 2);
-                              ctx.fill();
-                              ctx.stroke();
-                              
-                              // Draw text
-                              ctx.textAlign = 'center';
-                              ctx.textBaseline = 'middle';
-                              ctx.fillStyle = isDark 
-                                ? `rgba(148, 163, 184, ${opacity})` 
-                                : `rgba(71, 85, 105, ${opacity})`;
-                              ctx.fillText(label, 0, 0);
-                              
-                              ctx.restore();
-                            }}
-                          />
-
-                          {/* Floating Mindmap Controls */}
-                          <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10 select-none">
-                            {/* Zoom & Reset Controls */}
-                            <div className="flex items-center bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 shadow-lg rounded-xl p-1 gap-0.5">
-                              <button 
-                                onClick={() => {
-                                  if (fgRef.current) {
-                                    const currentZoom = fgRef.current.zoom();
-                                    fgRef.current.zoom(currentZoom * 1.3, 300);
-                                  }
-                                }}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                                title="Zoom In"
-                              >
-                                <ZoomIn className="h-4 w-4" />
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  if (fgRef.current) {
-                                    const currentZoom = fgRef.current.zoom();
-                                    fgRef.current.zoom(currentZoom / 1.3, 300);
-                                  }
-                                }}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                                title="Zoom Out"
-                              >
-                                <ZoomOut className="h-4 w-4" />
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  if (fgRef.current) {
-                                    fgRef.current.zoomToFit(400, 60);
-                                  }
-                                }}
-                                className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                                title="Recenter Graph"
-                              >
-                                <Maximize className="h-4 w-4" />
-                              </button>
-                            </div>
+                          <div className="w-full h-full bg-slate-900 rounded-xl overflow-hidden">
+                            <ReactFlowGraph
+                              nodes={mindmapData.nodes.map((n: any) => ({
+                                id: n.id,
+                                label: n.label,
+                                subject: subject
+                              }))}
+                              edges={mindmapData.links.map((e: any) => ({
+                                id: `${e.source.id || e.source}-${e.target.id || e.target}`,
+                                source: e.source.id || e.source,
+                                target: e.target.id || e.target,
+                                label: e.label
+                              }))}
+                            />
                           </div>
-
-                          {/* Floating Search concepts */}
-                          <div className="absolute top-4 right-4 flex items-center gap-2 z-10 max-w-xs w-60 select-none">
-                            <div className="relative w-full">
-                              <input
-                                type="text"
-                                placeholder="Find concept in graph..."
-                                onChange={(e) => handleSearchNode(e.target.value)}
-                                className="w-full px-3.5 py-1.5 pl-8 rounded-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 text-xs shadow-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition duration-150"
-                              />
-                              <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
-                            </div>
-                          </div>
-                        </>
                       ) : (
                         <div className="text-center text-slate-400 p-8 max-w-md">
                           <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />

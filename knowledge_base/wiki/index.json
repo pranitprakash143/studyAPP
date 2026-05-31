@@ -1,0 +1,776 @@
+{
+  "pages": [
+    {
+      "id": "history/ancient-history-overview",
+      "title": "Ancient History Overview",
+      "subject": "History",
+      "slug": "ancient-history-overview",
+      "tags": [
+        "ancient",
+        "intro"
+      ],
+      "sources": [
+        "mock_data.pdf"
+      ],
+      "last_compiled": "2026-05-31T07:02:13Z"
+    },
+    {
+      "id": "history/maurya-empire",
+      "title": "Maurya Empire",
+      "subject": "History",
+      "slug": "maurya-empire",
+      "tags": [
+        "ancient",
+        "empire"
+      ],
+      "sources": [
+        "mock_data.pdf"
+      ],
+      "last_compiled": "2026-05-31T07:02:13Z"
+    },
+    {
+      "id": "history/1-the-heavyweights-cloud-apis",
+      "title": "Cloud APIs for Emotive AI Voices",
+      "subject": "History",
+      "slug": "1-the-heavyweights-cloud-apis",
+      "tags": [
+        "cloud apis",
+        "ai voices",
+        "emotive ai",
+        "text-to-speech",
+        "elevenlabs",
+        "openai tts",
+        "azure neural tts"
+      ],
+      "sources": [
+        "pasted_text_History_TTS"
+      ],
+      "last_compiled": "2026-05-31T07:05:49Z"
+    },
+    {
+      "id": "history/2-the-best-free-hack-edge-tts",
+      "title": "The Best Free \"Hack\": Edge-TTS",
+      "subject": "History",
+      "slug": "2-the-best-free-hack-edge-tts",
+      "tags": [
+        "edge-tts",
+        "text-to-speech",
+        "microsoft edge",
+        "azure",
+        "python",
+        "javascript",
+        "free voices"
+      ],
+      "sources": [
+        "pasted_text_History_TTS"
+      ],
+      "last_compiled": "2026-05-31T07:06:15Z"
+    },
+    {
+      "id": "history/3-open-source-local-models",
+      "title": "3. Open-Source Local Models",
+      "subject": "History",
+      "slug": "3-open-source-local-models",
+      "tags": [
+        "open-source models",
+        "local models",
+        "python",
+        "javascript integration",
+        "tts",
+        "speech synthesis",
+        "ai models"
+      ],
+      "sources": [
+        "pasted_text_History_TTS"
+      ],
+      "last_compiled": "2026-05-31T07:06:27Z"
+    },
+    {
+      "id": "history/quick-comparison",
+      "title": "Quick Comparison",
+      "subject": "History",
+      "slug": "quick-comparison",
+      "tags": [
+        "text-to-speech",
+        "tts",
+        "comparison",
+        "audio",
+        "ai",
+        "development",
+        "api"
+      ],
+      "sources": [
+        "pasted_text_History_TTS"
+      ],
+      "last_compiled": "2026-05-31T07:06:33Z"
+    },
+    {
+      "id": "history/assam-history",
+      "title": "ASSAM HISTORY",
+      "subject": "History",
+      "slug": "assam-history",
+      "tags": [
+        "british administration",
+        "assam",
+        "david scott",
+        "annexations",
+        "revolts",
+        "ahom monarchy",
+        "treaty of guwahati",
+        "revenue reforms"
+      ],
+      "sources": [
+        "ASSAM modern HISTORY.docx"
+      ],
+      "last_compiled": "2026-05-31T07:32:51Z"
+    },
+    {
+      "id": "history/quit-india-movement",
+      "title": "QUIT INDIA MOVEMENT",
+      "subject": "History",
+      "slug": "quit-india-movement",
+      "tags": [
+        "quit india movement",
+        "indian independence",
+        "1942",
+        "gandhi",
+        "inc",
+        "assam",
+        "kanaklata baruah"
+      ],
+      "sources": [
+        "ASSAM modern HISTORY.docx"
+      ],
+      "last_compiled": "2026-05-31T07:33:02Z"
+    },
+    {
+      "id": "history/swahid-kushal-konwar",
+      "title": "SWAHID KUSHAL KONWAR",
+      "subject": "History",
+      "slug": "swahid-kushal-konwar",
+      "tags": [
+        "kushal konwar",
+        "sarupathar",
+        "jorhat jail",
+        "indian history",
+        "freedom struggle",
+        "nonviolence",
+        "british raj",
+        "assam"
+      ],
+      "sources": [
+        "ASSAM modern HISTORY.docx"
+      ],
+      "last_compiled": "2026-05-31T07:33:14Z"
+    },
+    {
+      "id": "history/immigration-issue",
+      "title": "IMMIGRATION ISSUE",
+      "subject": "History",
+      "slug": "immigration-issue",
+      "tags": [
+        "immigration",
+        "assam",
+        "british india",
+        "land policies",
+        "partition",
+        "political history",
+        "colonial administration"
+      ],
+      "sources": [
+        "ASSAM modern HISTORY.docx"
+      ],
+      "last_compiled": "2026-05-31T07:33:35Z"
+    }
+  ],
+  "edges": [
+    {
+      "from": "history/ancient-history-overview",
+      "to": "history/maurya-empire",
+      "from_title": "Ancient History Overview",
+      "to_title": "Maurya Empire",
+      "label": "followed by"
+    },
+    {
+      "from": "history/maurya-empire",
+      "to": "history/ancient-history-overview",
+      "from_title": "Maurya Empire",
+      "to_title": "Ancient History Overview",
+      "label": "part of"
+    },
+    {
+      "from": "history/1-the-heavyweights-cloud-apis",
+      "to": "history/nodejsjavascript",
+      "from_title": "Cloud APIs for Emotive AI Voices",
+      "to_title": "Node.js/JavaScript",
+      "label": "Official SDKs are provided for these languages."
+    },
+    {
+      "from": "history/1-the-heavyweights-cloud-apis",
+      "to": "history/python",
+      "from_title": "Cloud APIs for Emotive AI Voices",
+      "to_title": "Python",
+      "label": "Official SDKs are provided for this language."
+    },
+    {
+      "from": "history/1-the-heavyweights-cloud-apis",
+      "to": "history/openai",
+      "from_title": "Cloud APIs for Emotive AI Voices",
+      "to_title": "OpenAI",
+      "label": "OpenAI TTS is easy to integrate if already using OpenAI for text generation."
+    },
+    {
+      "from": "history/1-the-heavyweights-cloud-apis",
+      "to": "history/gpt-4o-realtime-api",
+      "from_title": "Cloud APIs for Emotive AI Voices",
+      "to_title": "GPT-4o Realtime API",
+      "label": "OpenAI TTS provides access to natural voices using this API."
+    },
+    {
+      "from": "history/1-the-heavyweights-cloud-apis",
+      "to": "history/conversational-agents",
+      "from_title": "Cloud APIs for Emotive AI Voices",
+      "to_title": "Conversational Agents",
+      "label": "Smallest.ai Waves & Cartesia are excellent for building these."
+    },
+    {
+      "from": "history/1-the-heavyweights-cloud-apis",
+      "to": "history/real-time-conversational-ai",
+      "from_title": "Cloud APIs for Emotive AI Voices",
+      "to_title": "Real-time Conversational AI",
+      "label": "Smallest.ai Waves & Cartesia are optimized for this."
+    },
+    {
+      "from": "history/1-the-heavyweights-cloud-apis",
+      "to": "history/text-generation",
+      "from_title": "Cloud APIs for Emotive AI Voices",
+      "to_title": "Text Generation",
+      "label": "OpenAI TTS integrates with OpenAI for text generation."
+    },
+    {
+      "from": "history/2-the-best-free-hack-edge-tts",
+      "to": "history/microsoft-edge",
+      "from_title": "The Best Free \"Hack\": Edge-TTS",
+      "to_title": "Microsoft Edge",
+      "label": "Edge-TTS utilizes its hidden \"Read Aloud\" API."
+    },
+    {
+      "from": "history/2-the-best-free-hack-edge-tts",
+      "to": "history/azure",
+      "from_title": "The Best Free \"Hack\": Edge-TTS",
+      "to_title": "Azure",
+      "label": "Edge-TTS uses Azure's neural voices."
+    },
+    {
+      "from": "history/2-the-best-free-hack-edge-tts",
+      "to": "history/python",
+      "from_title": "The Best Free \"Hack\": Edge-TTS",
+      "to_title": "Python",
+      "label": "A popular `edge-tts` library is available for Python users."
+    },
+    {
+      "from": "history/2-the-best-free-hack-edge-tts",
+      "to": "history/javascript",
+      "from_title": "The Best Free \"Hack\": Edge-TTS",
+      "to_title": "JavaScript",
+      "label": "Community wrappers like `node-edge-tts` exist for JavaScript environments."
+    },
+    {
+      "from": "history/2-the-best-free-hack-edge-tts",
+      "to": "history/nodejs",
+      "from_title": "The Best Free \"Hack\": Edge-TTS",
+      "to_title": "Node.js",
+      "label": "`node-edge-tts` is available on npm for Node.js environments."
+    },
+    {
+      "from": "history/2-the-best-free-hack-edge-tts",
+      "to": "history/api-keys",
+      "from_title": "The Best Free \"Hack\": Edge-TTS",
+      "to_title": "API keys",
+      "label": "Edge-TTS offers a free alternative to paying for API keys for premium voices."
+    },
+    {
+      "from": "history/3-open-source-local-models",
+      "to": "history/python",
+      "from_title": "3. Open-Source Local Models",
+      "to_title": "[[Python]]",
+      "label": "Dominant language for running local models and for TTS scripts."
+    },
+    {
+      "from": "history/3-open-source-local-models",
+      "to": "history/javascript-frontend",
+      "from_title": "3. Open-Source Local Models",
+      "to_title": "[[JavaScript frontend]]",
+      "label": "Can integrate with local models via APIs."
+    },
+    {
+      "from": "history/3-open-source-local-models",
+      "to": "history/node-backend",
+      "from_title": "3. Open-Source Local Models",
+      "to_title": "[[Node backend]]",
+      "label": "Can integrate with local models via APIs."
+    },
+    {
+      "from": "history/3-open-source-local-models",
+      "to": "history/fastapi",
+      "from_title": "3. Open-Source Local Models",
+      "to_title": "[[FastAPI]]",
+      "label": "Used to build lightweight APIs for Python TTS scripts."
+    },
+    {
+      "from": "history/3-open-source-local-models",
+      "to": "history/flask",
+      "from_title": "3. Open-Source Local Models",
+      "to_title": "[[Flask]]",
+      "label": "Used to build lightweight APIs for Python TTS scripts."
+    },
+    {
+      "from": "history/3-open-source-local-models",
+      "to": "history/http-requests",
+      "from_title": "3. Open-Source Local Models",
+      "to_title": "[[HTTP requests]]",
+      "label": "Method for JavaScript code to interact with Python APIs."
+    },
+    {
+      "from": "history/3-open-source-local-models",
+      "to": "history/llama-32",
+      "from_title": "3. Open-Source Local Models",
+      "to_title": "[[Llama 3.2]]",
+      "label": "The base model upon which Higgs Audio V2 is built."
+    },
+    {
+      "from": "history/3-open-source-local-models",
+      "to": "history/resemble-ai",
+      "from_title": "3. Open-Source Local Models",
+      "to_title": "[[Resemble AI]]",
+      "label": "The creator of the Chatterbox model."
+    },
+    {
+      "from": "history/quick-comparison",
+      "to": "history/text-to-speech-solutions-comparison",
+      "from_title": "Quick Comparison",
+      "to_title": "Text-to-Speech Solutions Comparison",
+      "label": "This document provides a comparison of various text-to-speech solutions."
+    },
+    {
+      "from": "history/quick-comparison",
+      "to": "history/application-type-considerations",
+      "from_title": "Quick Comparison",
+      "to_title": "Application Type Considerations",
+      "label": "The choice of text-to-speech tool depends on the application type, such as real-time or pre-generating audio."
+    },
+    {
+      "from": "history/quick-comparison",
+      "to": "history/real-time-conversational-ai",
+      "from_title": "Quick Comparison",
+      "to_title": "Real-time conversational AI",
+      "label": "Smallest.ai / Cartesia is best suited for real-time conversational AI."
+    },
+    {
+      "from": "history/quick-comparison",
+      "to": "history/conversational-voice-assistant",
+      "from_title": "Quick Comparison",
+      "to_title": "conversational voice assistant",
+      "label": "A conversational voice assistant is an example of a real-time application where low latency is critical."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/david-scott",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "David Scott",
+      "label": "Appointed agent to Governor General, proposed annexations, implemented reforms, and died in 1831."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/treaty-of-badarpur",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Treaty of Badarpur",
+      "label": "Signed in 1824 with Govinda Chandra, Raja of Cachar, making him a British vassal."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/treaty-of-guwahati",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Treaty of Guwahati",
+      "label": "Signed on March 2, 1833, between the British and Purandar Singha, restoring a portion of Upper Assam."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/purandar-singha",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Purandar Singha",
+      "label": "Chosen Ahom prince, signed the Treaty of Guwahati, and his territory was later annexed in 1838."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/gomdhar-konwar",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Gomdhar Konwar",
+      "label": "Leader of the First Revolt against the British in 1828, formally enthroned near Jorhat."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/peali-barphukan",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Peali Barphukan",
+      "label": "Son of Badan Barphukan, hanged in 1830 at Sibsagar for his role in a second revolt attempt."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/teerut-singh",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Teerut Singh",
+      "label": "Siem of Nongklao, led the Khasi revolt in 1829 against British road construction."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/adam-white",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Adam White",
+      "label": "Political agent who surveyed Purandar Singha's territory and was killed during the Khamti rebellion in 1839."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/manipur",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Manipur",
+      "label": "Gambhir Singh was recognized as its ruler in 1826; Govinda Chandra's assassination was caused by Gambhir Singh."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/khamtis",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Khamtis",
+      "label": "Accepted British suzerainty in 1826, but rebelled in 1839 leading to the annexation of Sadiya."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/moamarias",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Moamarias",
+      "label": "Accepted British suzerainty in 1826; Purandar Singha had no power over their country."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/singphos",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Singphos",
+      "label": "Chiefs acknowledged British supremacy in 1826 and rebelled in 1830."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/assam-light-infantry",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Assam Light Infantry",
+      "label": "A new regiment introduced by David Scott after the EIC regular army left Assam in 1826."
+    },
+    {
+      "from": "history/assam-history",
+      "to": "history/sibsagar",
+      "from_title": "ASSAM HISTORY",
+      "to_title": "Sibsagar",
+      "label": "Location where Peali Phukan and Jeoram Dulia Barua were hanged in 1830."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/cripps-mission",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Cripps Mission",
+      "label": "Its failure in 1942 was a genesis for the Quit India Movement."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/indian-national-congress-inc",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Indian National Congress (INC)",
+      "label": "Adopted the 'Quit India' Resolution on 8th August 1942."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/gandhi",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Gandhi",
+      "label": "Gave the slogan 'Do or Die' for the movement."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/gopinath-bordoloi",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Gopinath Bordoloi",
+      "label": "An important Congress leader arrested during the movement."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/siddhi-nath-sarma",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Siddhi Nath Sarma",
+      "label": "An important Congress leader arrested during the movement."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/pitambar-dev-goswami",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Pitambar Dev Goswami",
+      "label": "A leader detained during the movement."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/krishna-dev-goswami",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Krishna Dev Goswami",
+      "label": "A leader detained during the movement."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/kanaklata-baruah",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Kanaklata Baruah",
+      "label": "A martyr known as 'Birbala' who was shot dead during the Gohpur Police Station Incident."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/mukunda-kakati",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Mukunda Kakati",
+      "label": "A compatriot of Kanaklata Baruah who was also killed in the Gohpur incident."
+    },
+    {
+      "from": "history/quit-india-movement",
+      "to": "history/gohpur-police-station-incident",
+      "from_title": "QUIT INDIA MOVEMENT",
+      "to_title": "Gohpur Police Station Incident",
+      "label": "A significant event of defiance where Kanaklata Baruah and Mukunda Kakati were killed."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/sarupathar-train-sabotage",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Sarupathar train sabotage",
+      "label": "The event Kushal Konwar was accused of being the chief conspirator for."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/gandhiji",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Gandhiji",
+      "label": "Kushal Konwar was an ardent follower of his principle of nonviolence."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/jorhat-jail",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Jorhat Jail",
+      "label": "The location where Kushal Konwar was executed and Kamala Miri died."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/kamala-miri",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Kamala Miri",
+      "label": "A detenue who died in Jorhat jail due to lack of treatment."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/bhogeswari-phukanani",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Bhogeswari Phukanani",
+      "label": "Listed as another woman participant in the movement."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/tileswari-barua",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Tileswari Barua",
+      "label": "Listed as another woman participant in the movement."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/rebati-lahon",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Rebati Lahon",
+      "label": "Listed as another woman participant in the movement."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/khahuli-devi",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Khahuli Devi",
+      "label": "Listed as another woman participant in the movement."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/kumali-devi",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Kumali Devi",
+      "label": "Listed as another woman participant in the movement."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/ahimsa-biplavi-sangha",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Ahimsa Biplavi Sangha",
+      "label": "One of the local underground cells engaged in activities."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/hanuman-party",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Hanuman Party",
+      "label": "One of the local underground cells engaged in activities."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/karma-parisad",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Karma Parisad",
+      "label": "One of the local underground cells engaged in activities."
+    },
+    {
+      "from": "history/swahid-kushal-konwar",
+      "to": "history/mrityu-bahini",
+      "from_title": "SWAHID KUSHAL KONWAR",
+      "to_title": "Mrityu Bahini",
+      "label": "One of the local underground cells engaged in activities."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/colonization-scheme",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Colonization scheme",
+      "label": "An early immigration policy introduced towards the end of the 1920s to regulate immigrant settlement."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/the-line-system",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "The Line System",
+      "label": "An immigration policy introduced in 1920 to classify waste lands and regulate immigrant land holding."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/c-s-mullans-census-report-1931",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "C. S. Mullan's Census Report (1931)",
+      "label": "A report observing the significant demographic changes and 'conquest' of districts in Assam by immigrants."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/land-development-scheme-1941",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Land Development Scheme (1941)",
+      "label": "A scheme by the Saadullah government to open areas for settlement, viewed as a conspiracy to include Assam in Pakistan."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/saadullah-government",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Saadullah government",
+      "label": "Announced the Land Development Scheme in 1941."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/congress",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Congress",
+      "label": "Secured a majority in the 1946 election and formed a ministry under Gopinath Bordoloi, also supported anti-grouping agitation."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/gopinath-bordoloi",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Gopinath Bordoloi",
+      "label": "Formed the second Ministry in Assam on February 11, 1946, after Congress secured a majority."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/cabinet-mission-1946",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Cabinet Mission, 1946",
+      "label": "Rejected the demand for Pakistan and proposed a grouping plan that included Assam and Bengal in Section C, causing resentment in Assam."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/pakistan",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Pakistan",
+      "label": "Its demand was rejected by the Cabinet Mission but later facilitated by the Mountbatten Plan through provincial votes and referendums."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/assam",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Assam",
+      "label": "Subject to various immigration policies and schemes, and faced significant political challenges regarding its inclusion in proposed groupings and potential partition."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/bengal",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Bengal",
+      "label": "Grouped with Assam in Section C by the Cabinet Mission and subject to a vote for partition under the Mountbatten Plan."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/asam-jatiya-mahasabha",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Asam Jatiya Mahasabha",
+      "label": "Collected secret papers showing the League's designs in Assam and participated in the anti-grouping agitation."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/congress-socialists",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Congress socialists",
+      "label": "Gave full support to the anti-grouping agitation in Assam."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/communists",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Communists",
+      "label": "Gave full support to the anti-grouping agitation in Assam."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/mountbatten-plan",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Mountbatten Plan",
+      "label": "Outlined the process for India's independence and the creation of Pakistan through provincial votes and referendums."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/india",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "India",
+      "label": "Declared to be independent on August 15, 1947, under the Mountbatten Plan."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/punjab",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Punjab",
+      "label": "Its legislative assembly members would vote separately on partition under the Mountbatten Plan."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/sindh",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Sindh",
+      "label": "Subject to a referendum to decide joining Pakistan under the Mountbatten Plan."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/nwfp",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "NWFP",
+      "label": "Subject to a referendum to decide joining Pakistan under the Mountbatten Plan."
+    },
+    {
+      "from": "history/immigration-issue",
+      "to": "history/sylhet",
+      "from_title": "IMMIGRATION ISSUE",
+      "to_title": "Sylhet",
+      "label": "Subject to a referendum to decide joining Pakistan under the Mountbatten Plan."
+    }
+  ]
+}

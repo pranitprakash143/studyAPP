@@ -51,6 +51,9 @@ export interface BackendChapter {
 
 export interface BackendIngestResponse {
   success: boolean;
+  status?: string;
+  job_id?: string;
+  message?: string;
   source: string;
   subject: string;
   topic: string;
@@ -66,6 +69,7 @@ export interface BackendQueryResult {
   subject: string;
   topic: string;
   chapter: string;
+  subtopic: string;
   source: string;
   chunk_id: string;
   score: number;
@@ -92,6 +96,7 @@ export interface BackendSubjectChunk {
   content: string;
   topic: string;
   chapter: string;
+  subtopic: string;
   source: string;
 }
 
@@ -144,16 +149,18 @@ export async function proxyIngest(
 
 /**
  * Semantic search over ChromaDB via the FastAPI backend.
+ * Uses HyDE retrieval by default (use_hyde=true) for better recall.
  */
 export async function queryKnowledgeBase(
   query: string,
   subject?: string,
-  topK: number = 6
+  topK: number = 6,
+  useHyDE: boolean = true
 ): Promise<BackendQueryResult[]> {
   const res = await fetch(`${BACKEND_URL}/api/query`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, subject: subject || null, top_k: topK }),
+    body: JSON.stringify({ query, subject: subject || null, top_k: topK, use_hyde: useHyDE }),
     cache: "no-store",
   });
 

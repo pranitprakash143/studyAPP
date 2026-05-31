@@ -16,6 +16,7 @@ from core.config import get_settings
 # Chat LLM
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def get_llm(temperature: float = 0.2) -> BaseChatModel:
     """
     Return the appropriate LangChain chat model based on settings.
@@ -53,6 +54,7 @@ def get_llm(temperature: float = 0.2) -> BaseChatModel:
 # Embeddings
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @lru_cache(maxsize=1)
 def get_embeddings() -> Embeddings:
     """
@@ -71,7 +73,7 @@ def get_embeddings() -> Embeddings:
         # e.g. 'text-embedding-004' not 'models/text-embedding-004'
         embedding_model = settings.gemini_embedding_model
         if embedding_model.startswith("models/"):
-            embedding_model = embedding_model[len("models/"):]
+            embedding_model = embedding_model[len("models/") :]
 
         return GoogleGenerativeAIEmbeddings(
             model=embedding_model,
@@ -92,11 +94,13 @@ def get_embeddings() -> Embeddings:
 # Used internally by graph nodes that need a plain string response.
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 async def generate_text(
     prompt: str,
     system_prompt: str | None = None,
     temperature: float = 0.2,
     json_mode: bool = False,
+    timeout: int | None = None,
 ) -> str:
     """Generate a plain-string response from the configured LLM."""
     from langchain_core.messages import HumanMessage, SystemMessage
@@ -108,16 +112,19 @@ async def generate_text(
 
     llm = get_llm(temperature=temperature)
 
+    # Add timeout if provided
+    if timeout is not None:
+        llm = llm.with_config({"timeout": timeout, "max_retries": 1})
+
     # Bind JSON mode if requested and provider supports it
     if json_mode:
         settings = get_settings()
         if settings.ai_provider == "cloud":
             from langchain_google_genai import ChatGoogleGenerativeAI
             from langchain_core.output_parsers import StrOutputParser
+
             # Gemini JSON mode via mime type
-            llm = llm.bind(
-                generation_config={"response_mime_type": "application/json"}
-            )
+            llm = llm.bind(generation_config={"response_mime_type": "application/json"})
 
     response = await llm.ainvoke(messages)
     return str(response.content).strip()

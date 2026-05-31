@@ -4,8 +4,8 @@
  * Thin proxy: receives the FormData from the upload page and forwards it
  * directly to the Python FastAPI backend, which handles:
  *  - PDF / DOCX / PPTX / image / YouTube / pasted-text parsing
- *  - LangGraph 7-node cleaning + formatting pipeline
- *  - ChromaDB upsert (idempotent via content hash)
+ *  - LangGraph 9-node pipeline: analyze → clean → split → TOC → tag → assemble → format → save → mindmap
+ *  - ChromaDB upsert at subtopic level (idempotent via content hash)
  *
  * Response is mapped to the shape the frontend already expects:
  *  { success, subject, topic, source, sections, sectionsAdded, completenessScore }
@@ -47,15 +47,26 @@ export async function POST(req: NextRequest) {
     // Forward to FastAPI backend
     const result = await proxyIngest(backendForm);
 
-    // Map backend response → frontend contract
-    // Frontend expects: { success, subject, topic, source, sections, sectionsAdded, completenessScore }
-    // Backend returns:  { success, subject, topic, source, chunks_added, chapters, completeness_score }
+    // If backend returned a background job ID (status 202)
+    if (result.status === "processing" && result.job_id) {
+      return NextResponse.json({
+        success: true,
+        status: "processing",
+        jobId: result.job_id,
+        message: result.message,
+        subject: result.subject,
+        topic: result.topic,
+        source: result.source,
+      }, { status: 202 });
+    }
+
+    // Fallback if backend returned synchronous result (e.g. tests)
     return NextResponse.json({
       success: true,
       subject: result.subject,
       topic: result.topic,
       source: result.source,
-      sections: result.chapters.map((c) => ({
+      sections: (result.chapters || []).map((c: any) => ({
         title: c.title,
         content: c.preview || c.content || "",
       })),

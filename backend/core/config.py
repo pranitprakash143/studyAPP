@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     ollama_model: str = "llama3"
 
     # ── ChromaDB ─────────────────────────────────────────────────────────────
-    chroma_host: str = "chromadb"   # Docker service name
+    chroma_host: str = "chromadb"  # Docker service name
     chroma_port: int = 8001
     chroma_collection: str = "prepagent_kb"
 
@@ -49,8 +49,14 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.cors_origins.split(",")]
 
     # ── File Uploads ─────────────────────────────────────────────────────────
-    max_upload_size_mb: int = 50
+    max_upload_size_mb: int = 15
     upload_dir: str = "/app/uploads"
+
+    # ── Ingestion Limits ─────────────────────────────────────────────────────
+    # Maximum characters of extracted text the pipeline will process.
+    # Documents exceeding this will be rejected with a clear error.
+    # 80,000 chars ≈ 40 pages of dense text — optimal for LLM context quality.
+    max_ingest_chars: int = 80_000
 
 
 @lru_cache

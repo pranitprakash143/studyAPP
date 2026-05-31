@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Caddyfile
+# Handles automatic SSL provisioning via Let's Encrypt and reverse proxies
+# traffic to the Next.js frontend and FastAPI backend.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# The domain name will be injected via an environment variable.
+# For local testing without a domain, you can set DOMAIN=localhost
+{$DOMAIN} {
+    # ── Proxy API Requests to FastAPI ─────────────────────────────────────────
+    handle /api/* {
+        reverse_proxy http://backend:8000
+    }
+
+    # ── Proxy all other requests to Next.js ───────────────────────────────────
+    handle {
+        reverse_proxy http://nextjs:3000
+    }
+
+    # ── Compression ───────────────────────────────────────────────────────────
+    encode zstd gzip
+}

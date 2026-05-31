@@ -11,8 +11,7 @@
 #  6. assemble_chapters   → Group chunks; COMPLETENESS GATE (≥92%)
 #  7. format_chapters     → AI formats + splits into subtopic chunks
 #  8. save_to_chroma      → Upsert subtopic-level chunks into ChromaDB
-#  9. extract_mindmap     → AI extracts concept graph (failure-safe bonus)
-# 10. compile_wiki_pages  → AI compiles/updates wiki entity pages (Karpathy pattern)
+#  9. compile_wiki_pages  → AI compiles/updates wiki entity pages (Karpathy pattern)
 # ─────────────────────────────────────────────────────────────────────────────
 import json
 import logging
@@ -75,9 +74,6 @@ class IngestionState(TypedDict, total=False):
     chunks_saved: int
 
     # Node 9 output
-    mindmap: dict | None
-
-    # Node 10 output
     wiki_result: dict | None
 
     # Error log — Annotated with operator.add so errors ACCUMULATE
@@ -874,40 +870,9 @@ async def save_to_chroma(state: IngestionState) -> dict:
         return {"chunks_saved": 0, "errors": [f"save_to_chroma: {e}"]}
 
 
-async def extract_mindmap(state: IngestionState) -> dict:
-    """Node 9: AI extracts concept graph (failure-safe — notes already saved)."""
-    subtopic_chunks = state.get("subtopic_chunks", [])
-    compact = "\n\n".join(
-        f"# {c['chapter_title']} > {c['subtopic_title']}\n{c['content'][:300]}"
-        for c in subtopic_chunks[:10]
-    )
-
-    system = (
-        "Extract key academic concepts and relationships.\n"
-        "Output ONLY this JSON (no fences): "
-        '{"nodes": [{"id": "snake_case_id", "label": "Concept Name"}], '
-        '"edges": [{"source": "id", "target": "id", "label": "verb"}]}'
-    )
-    prompt = f"STUDY NOTES:\n---\n{compact}\n---\nExtract the knowledge graph."
-
-    try:
-        resp = await generate_text(prompt, system_prompt=system, json_mode=True)
-        graph = _safe_parse_json(resp)
-        if graph.get("nodes"):
-            logger.info(
-                f"[Node 9] Mindmap: {len(graph['nodes'])} nodes, {len(graph.get('edges', []))} edges"
-            )
-            return {"mindmap": graph}
-    except Exception as e:
-        logger.warning(f"[Node 9] Mindmap extraction failed (non-critical): {e}")
-        return {"errors": [f"extract_mindmap: {e}"]}
-
-    return {"mindmap": None}
-
-
 async def compile_wiki_pages(state: IngestionState) -> dict:
     """
-    Node 10: Compile/update wiki entity pages from the ingested subtopic chunks.
+    Node 9: Compile/update wiki entity pages from the ingested subtopic chunks.
 
     Implements Karpathy's LLM Wiki pattern — after each ingestion, the AI
     synthesizes structured, cross-linked Markdown pages in knowledge_base/wiki/.
@@ -933,12 +898,12 @@ async def compile_wiki_pages(state: IngestionState) -> dict:
             formatted_chapters=formatted_chapters,
         )
         logger.info(
-            f"[Node 10] Wiki: {result['pages_created']} created, "
+            f"[Node 9] Wiki: {result['pages_created']} created, "
             f"{result['pages_updated']} updated for {subject}/{topic}"
         )
         return {"wiki_result": result}
     except Exception as e:
-        logger.warning(f"[Node 10] Wiki compilation failed (non-critical): {e}")
+        logger.warning(f"[Node 9] Wiki compilation failed (non-critical): {e}")
         return {"wiki_result": None, "errors": [f"compile_wiki_pages: {e}"]}
 
 
@@ -958,7 +923,6 @@ def build_ingestion_graph():
     g.add_node("assemble_chapters", assemble_chapters)
     g.add_node("format_chapters", format_chapters)
     g.add_node("save_to_chroma", save_to_chroma)
-    g.add_node("extract_mindmap", extract_mindmap)
     g.add_node("compile_wiki_pages", compile_wiki_pages)
 
     g.set_entry_point("save_raw_clean")
@@ -969,8 +933,7 @@ def build_ingestion_graph():
     g.add_edge("semantic_tag", "assemble_chapters")
     g.add_edge("assemble_chapters", "format_chapters")
     g.add_edge("format_chapters", "save_to_chroma")
-    g.add_edge("save_to_chroma", "extract_mindmap")
-    g.add_edge("extract_mindmap", "compile_wiki_pages")
+    g.add_edge("save_to_chroma", "compile_wiki_pages")
     g.add_edge("compile_wiki_pages", END)
 
     return g.compile()
@@ -1007,7 +970,6 @@ async def run_ingestion(
         "subtopic_chunks": final.get("subtopic_chunks", []),
         "chunks_saved": final.get("chunks_saved", 0),
         "completeness_score": final.get("completeness_score", 0.0),
-        "mindmap": final.get("mindmap"),
         "wiki_result": final.get("wiki_result"),
         "errors": final.get("errors", []),
         "document_type": final.get("document_type", "unknown"),

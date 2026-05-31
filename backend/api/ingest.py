@@ -128,7 +128,6 @@ async def ingest(
                 "chunks_added": result.get("chunks_saved", 0),
                 "completeness_score": result.get("completeness_score", 0),
                 "chapters": chapters_summary,
-                "mindmap": result.get("mindmap"),
                 "wiki_pages_created": wiki_result.get("pages_created", 0),
                 "wiki_pages_updated": wiki_result.get("pages_updated", 0),
                 "warnings": result.get("errors", []),

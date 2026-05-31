@@ -7,12 +7,7 @@
 # The domain name will be injected via an environment variable.
 # For local testing without a domain, you can set DOMAIN=localhost
 {$DOMAIN} {
-    # ── Proxy API Requests to FastAPI ─────────────────────────────────────────
-    handle /api/* {
-        reverse_proxy http://backend:8000
-    }
-
-    # ── Proxy all other requests to Next.js ───────────────────────────────────
+    # ── Proxy all requests to Next.js (Next.js proxies /api to FastAPI internally) ──
     handle {
         reverse_proxy http://nextjs:3000
     }

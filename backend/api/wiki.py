@@ -5,9 +5,12 @@
 # GET /api/wiki/{subject}/{slug} → get single wiki page content
 # ─────────────────────────────────────────────────────────────────────────────
 import logging
+import json
+import re
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
+from core.llm import generate_text
 from wiki.wiki_compiler import get_wiki_index, get_wiki_page, list_wiki_pages
 
 logger = logging.getLogger(__name__)
@@ -73,4 +76,40 @@ async def get_page(subject: str, slug: str):
         raise
     except Exception as e:
         logger.error(f"[API/wiki] get page {subject}/{slug} failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/api/wiki/{subject}/{slug}/mindmap")
+async def generate_mindmap(subject: str, slug: str):
+    """Generate a mindmap knowledge graph from the compiled wiki page."""
+    try:
+        page = get_wiki_page(subject, slug)
+        if not page:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Wiki page '{subject}/{slug}' not found.",
+            )
+            
+        content = page.get("content", "")
+        if not content:
+            raise HTTPException(status_code=400, detail="Wiki page content is empty")
+            
+        system = (
+            "Extract key academic concepts and relationships.\n"
+            "Output ONLY this JSON (no fences): "
+            '{"nodes": [{"id": "snake_case_id", "label": "Concept Name"}], '
+            '"edges": [{"source": "id", "target": "id", "label": "verb"}]}'
+        )
+        prompt = f"WIKI PAGE:\n---\n{content}\n---\nExtract the knowledge graph."
+        
+        resp = await generate_text(prompt, system_prompt=system, json_mode=True, timeout=60)
+        
+        # safe parse json
+        cleaned = resp.strip()
+        cleaned = re.sub(r"^```(?:json)?", "", cleaned).rstrip("```").strip()
+        graph = json.loads(cleaned)
+        
+        return JSONResponse({"mindmap": graph})
+        
+    except Exception as e:
+        logger.error(f"[API/wiki] mindmap generation for {subject}/{slug} failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))

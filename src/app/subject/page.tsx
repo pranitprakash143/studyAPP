@@ -1954,6 +1954,33 @@ export default function SubjectBinder() {
     }
   };
 
+  const handleGenerateMindmap = async () => {
+    if (topics.length === 0) {
+      setErrorMessage("No topics available to generate mindmap.");
+      return;
+    }
+    
+    setLoadingMindmap(true);
+    setErrorMessage("");
+    try {
+      // Generate mindmap for each topic
+      for (const topic of topics) {
+        await fetch("/api/mindmaps/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ subject, topic: topic.title })
+        });
+      }
+      // Reload mindmap
+      await loadMindmap(subject);
+    } catch (err: any) {
+      console.error("Failed to generate mindmaps:", err);
+      setErrorMessage(err.message || "Failed to generate mindmaps");
+    } finally {
+      setLoadingMindmap(false);
+    }
+  };
+
   // Handle deleting a specific chapter (topic)
   const handleDeleteTopic = async (topicName: string) => {
     if (!window.confirm(`Are you absolutely sure you want to delete the chapter "${topicName}"? This will delete all its notes and mindmap nodes.`)) {
@@ -3119,7 +3146,13 @@ export default function SubjectBinder() {
                         <div className="text-center text-slate-400 p-8 max-w-md">
                           <Network className="h-12 w-12 mx-auto mb-4 opacity-50" />
                           <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">No Mindmap Available</h3>
-                          <p className="text-sm">We don&apos;t have a mindmap graph for this subject yet. Edit and save your notes to generate one.</p>
+                          <p className="text-sm mb-6">We don&apos;t have a mindmap graph for this subject yet. You can generate one on-demand from the compiled Wiki pages.</p>
+                          <button
+                            onClick={handleGenerateMindmap}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+                          >
+                            Generate Mindmap from Wiki
+                          </button>
                         </div>
                       )}
                     </div>

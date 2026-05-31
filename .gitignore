@@ -44,6 +44,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Python virtual environment (root level)
+.venv/
+
 # Python backend
 backend/__pycache__/
 backend/**/__pycache__/
@@ -54,6 +57,15 @@ backend/*.pyo
 # Docker / ChromaDB
 chroma_data/
 backend_uploads/
+
+# Knowledge base (generated/runtime data)
+knowledge_base/wiki/
+knowledge_base/logs/
+knowledge_base/metadata/
+knowledge_base/master_kb.md
+
+# Scratch / test files
+scratch/
 
 # Secrets
 .env

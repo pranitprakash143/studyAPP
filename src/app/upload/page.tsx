@@ -222,7 +222,8 @@ export default function Upload() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        if (data.status === "processing" && data.jobId) {
+        const jobId = data.job_id || data.jobId;
+        if (data.status === "processing" && jobId) {
           // Poll for status
           const pollJob = async (jobId: string) => {
             try {
@@ -236,7 +237,7 @@ export default function Upload() {
                   subject: result.subject,
                   topic: result.topic,
                   source: result.source,
-                  sections: result.chapters, // result.chapters comes from backend
+                  sections: result.chapters || result.sections || [], 
                   subtopicCount,
                 });
                 setStatus("success");
@@ -257,7 +258,7 @@ export default function Upload() {
               setStatus("error");
             }
           };
-          pollJob(data.jobId);
+          pollJob(jobId);
         } else {
           // Synchronous response fallback
           completePipelineSuccess();
@@ -266,7 +267,7 @@ export default function Upload() {
             subject: data.subject,
             topic: data.topic,
             source: data.source,
-            sections: data.sections,
+            sections: data.sections || data.chapters || [],
             subtopicCount,
           });
           setStatus("success");
@@ -688,11 +689,15 @@ export default function Upload() {
                       )}
                     </h3>
                     <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-                      {ingestedResult.sections.map((sec, idx) => (
-                        <div key={idx} className="text-xs p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-semibold text-slate-700 dark:text-slate-200">
-                          {sec.title}
-                        </div>
-                      ))}
+                      {ingestedResult.sections && ingestedResult.sections.length > 0 ? (
+                        ingestedResult.sections.map((sec, idx) => (
+                          <div key={idx} className="text-xs p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 font-semibold text-slate-700 dark:text-slate-200">
+                            {sec.title}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-xs text-slate-500 italic p-2">No chapters identified.</div>
+                      )}
                     </div>
                   </div>
 

@@ -6,9 +6,23 @@
 # and deploys the StudyApp via docker-compose.
 # ─────────────────────────────────────────────────────────────────────────────
 
-set -e
+set -euo pipefail
 
 echo "🚀 Starting StudyApp Deployment on AWS EC2..."
+
+# 0. Add Swap Space to prevent Out-Of-Memory (OOM) kills during build
+echo "💾 Checking system memory and swap..."
+if [ $(free | awk '/^Swap:/ {print $2}') -eq 0 ]; then
+    echo "⚙️  No swap space detected. Creating 2GB swapfile..."
+    sudo fallocate -l 2G /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+    echo "✅ Swap space enabled to prevent build crashes."
+else
+    echo "✅ Swap space is already configured."
+fi
 
 # 1. Update system and install required dependencies
 echo "📦 Updating system packages..."
@@ -61,7 +75,14 @@ EOF
 echo "🏗️ Building and spinning up the Docker cluster..."
 # Ensure the knowledge_base directory exists so permissions map correctly
 mkdir -p knowledge_base uploads
-sudo docker compose build
+
+echo "🔨 Building Backend image (1/2)..."
+sudo docker compose build backend
+
+echo "🔨 Building Next.js image (2/2)..."
+sudo docker compose build nextjs
+
+echo "🚀 Launching all containers..."
 sudo docker compose up -d
 
 echo "🎉 Deployment Complete!"

@@ -28,6 +28,8 @@ services:
       dockerfile: Dockerfile
     container_name: prepagent-backend
     restart: unless-stopped
+    ports:
+      - "8000:8000"
     depends_on:
       - chromadb        # Start after chromadb; retry logic in main.py handles readiness
     env_file:

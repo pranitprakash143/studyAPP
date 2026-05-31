@@ -20,14 +20,13 @@ import {
   Palette,
   Network,
 } from "lucide-react";
-import { loadSettings, saveSettings } from "@/lib/settings";
+import { useAIConfig } from "@/contexts/AIConfigContext";
 import CustomDropdown from "@/components/CustomDropdown";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [theme, setTheme] = useState<
-    "theme-light" | "theme-dark" | "theme-sepia" | "theme-forest" | "theme-ocean"
-  >("theme-dark");
+  const { settings, updateSettings } = useAIConfig();
+  const theme = settings.theme;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -40,10 +39,6 @@ export default function Sidebar() {
   ];
 
   useEffect(() => {
-    // Load theme setting
-    const settings = loadSettings();
-    setTheme(settings.theme);
-
     // Load collapsible state
     const collapsed = localStorage.getItem("prepagent_sidebar_collapsed") === "true";
     setIsCollapsed(collapsed);
@@ -62,15 +57,11 @@ export default function Sidebar() {
     const currentIndex = themes.findIndex((t) => t.value === theme);
     const nextIndex = (currentIndex + 1) % themes.length;
     const newTheme = themes[nextIndex].value;
-    setTheme(newTheme);
-    const settings = loadSettings();
-    saveSettings({ ...settings, theme: newTheme });
+    updateSettings({ theme: newTheme });
   };
 
   const handleSelectTheme = (val: typeof theme) => {
-    setTheme(val);
-    const settings = loadSettings();
-    saveSettings({ ...settings, theme: val });
+    updateSettings({ theme: val });
   };
 
   const toggleCollapse = () => {

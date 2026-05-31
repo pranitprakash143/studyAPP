@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import Navbar from "@/components/Navbar";
+import PageLayout from "@/components/PageLayout";
+import PageHeader from "@/components/PageHeader";
+import Card from "@/components/Card";
+import LoadingState from "@/components/LoadingState";
+import ErrorAlert from "@/components/ErrorAlert";
+import StatusBadge from "@/components/StatusBadge";
 import {
   Award,
   BookOpen,
@@ -154,28 +158,12 @@ export default function Quiz() {
   }, 0);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0b0f19]">
-      <Sidebar />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar />
-        
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-8 max-w-4xl mx-auto flex flex-col">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-400">
-            <Award className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Active Recall Quiz Engine
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Test your understanding. Quizzes are generated strictly from details present in your syllabus folder.
-            </p>
-          </div>
-        </div>
+    <PageLayout maxWidth="4xl">
+      <PageHeader
+        icon={<Award className="h-6 w-6" />}
+        title="Active Recall Quiz Engine"
+        description="Test your understanding. Quizzes are generated strictly from details present in your syllabus folder."
+      />
 
         {/* Dynamic Quiz Frame */}
         <div className="flex-1 flex flex-col justify-center">
@@ -413,9 +401,6 @@ export default function Quiz() {
             </div>
           )}
         </div>
-      </main>
-        </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

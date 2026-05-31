@@ -83,23 +83,59 @@ Generate the notes strictly using the rules above.`;
   }
 }
 
-// ── GET /api/notes — return KB stats ─────────────────────────────────────────
+// ── GET /api/notes — return KB stats or raw Master copy content ─────────────────
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const raw = searchParams.get("raw");
+
+    if (raw === "true") {
+      const { getMasterKbContent } = await import("@/lib/vector-store");
+      const rawContent = getMasterKbContent();
+      return NextResponse.json({
+        success: true,
+        rawContent,
+      });
+    }
+
     const subjects = await listSubjects();
 
     const allSubjectNames = subjects.map((s) => s.subject);
     const totalTopics = subjects.reduce((acc, s) => acc + s.topic_count, 0);
 
+    // Check for pending processing
+    const BACKEND_URL =
+      process.env.BACKEND_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      "http://localhost:8000";
+    let pendingCount = 0;
+    try {
+      const pendingRes = await fetch(`${BACKEND_URL}/api/pending`);
+      const pendingData = await pendingRes.json();
+      pendingCount = pendingData.total || 0;
+    } catch {
+      // Backend may be unavailable, that's fine
+    }
+
+    // Get size of master KB dynamically
+    let masterKbSize = 0;
+    try {
+      const { getMasterKbContent } = await import("@/lib/vector-store");
+      masterKbSize = getMasterKbContent().length;
+    } catch {
+      // Offline fallback reading failed
+    }
+
     return NextResponse.json({
       success: true,
       stats: {
         totalSubjects: subjects.length,
-        totalSources: totalTopics, // approximate: 1 source per topic
-        totalChunks: totalTopics,  // approximate until backend exposes chunk count
-        masterKbSizeBytes: 0,
+        totalSources: totalTopics,
+        totalChunks: totalTopics,
+        masterKbSizeBytes: masterKbSize,
         subjects: allSubjectNames,
         sources: allSubjectNames,
+        pendingProcessing: pendingCount,
       },
     });
   } catch (error: unknown) {

@@ -33,13 +33,20 @@ import {
   Square,
   FileText,
   Printer,
-  Sparkles
+  Sparkles,
+  Sliders,
+  Wand2,
+  MessageSquare
 } from "lucide-react";
 import { getAIHeaders, HARDCODED_SUBJECTS } from "@/lib/settings";
+import { formatDisplayName } from "@/lib/utils";
 import dynamic from "next/dynamic";
 import CustomDropdown, { DropdownOption } from "@/components/CustomDropdown";
 
 import ReactFlowGraph from "@/components/ReactFlowGraph";
+import GraphErrorBoundary from "@/components/GraphErrorBoundary";
+import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
+
 
 const drawRoundedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
   if (ctx.roundRect) {
@@ -292,14 +299,89 @@ const VisualBlockItem = ({
   );
 };
 
+function parseAIErrors(errString: string): { mainMessage: string; details?: string } {
+  if (!errString) return { mainMessage: "An unexpected error occurred" };
+  
+  const jsonStartIdx = errString.indexOf("{");
+  if (jsonStartIdx !== -1) {
+    try {
+      const jsonStr = errString.substring(jsonStartIdx);
+      const parsed = JSON.parse(jsonStr);
+      const innerMessage = parsed.error?.message || parsed.message || parsed.detail || parsed.error || null;
+      if (innerMessage) {
+        return {
+          mainMessage: errString.substring(0, jsonStartIdx).replace(/:\s*$/, "") + ": " + innerMessage,
+          details: JSON.stringify(parsed, null, 2)
+        };
+      }
+    } catch (e) {
+      // Not parseable JSON
+    }
+  }
+  return { mainMessage: errString };
+}
+
 export default function SubjectBinder() {
   const [subject, setSubject] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [topics, setTopics] = useState<TopicNode[]>([]);
   const [sources, setSources] = useState<string[]>([]);
 
+  // --- Dynamic Client-Side TOC Parser useMemo ---
+  const parsedTOC = React.useMemo(() => {
+    if (!markdown) return [];
+    
+    const lines = markdown.split("\n");
+    const chaptersList: { name: string; fullName: string; sources: string[]; subsections: { name: string; fullName: string }[] }[] = [];
+    let currentChapter: typeof chaptersList[0] | null = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // 1. Chapter Heading (H2)
+      if (line.startsWith("## ")) {
+        const fullName = line.substring(3).trim();
+        const cleanName = fullName.replace(/^Topic:\s*/i, "").trim();
+        
+        currentChapter = {
+          name: cleanName,
+          fullName: fullName,
+          sources: [],
+          subsections: []
+        };
+        chaptersList.push(currentChapter);
+        continue;
+      }
+      
+      // 2. Sources descriptor (immediately below H2)
+      if (currentChapter && line.startsWith("* **Sources**:")) {
+        const sourcesStr = line.replace("* **Sources**:", "").trim();
+        if (sourcesStr) {
+          currentChapter.sources = sourcesStr.split(",").map(s => s.trim()).filter(Boolean);
+        }
+        continue;
+      }
+      
+      // 3. Subheading (H3)
+      if (currentChapter && line.startsWith("### ")) {
+        const fullName = line.substring(4).trim();
+        const cleanName = fullName.replace(/^Topic:\s*/i, "").trim();
+        currentChapter.subsections.push({
+          name: cleanName,
+          fullName: fullName
+        });
+      }
+    }
+    
+    return chaptersList;
+  }, [markdown]);
+
   // UI states
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [processingTaskId, setProcessingTaskId] = useState<string | null>(null);
+  const [taskProgress, setTaskProgress] = useState(0);
+  const [taskNode, setTaskNode] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -323,6 +405,11 @@ export default function SubjectBinder() {
   // --- Sidebar TOC Renaming States ---
   const [editingTopicName, setEditingTopicName] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [activeChapterFilter, setActiveChapterFilter] = useState<string>("All");
+  const [isCleaningChapter, setIsCleaningChapter] = useState(false);
+  const [selectedChapterName, setSelectedChapterName] = useState<string>("");
+  const [aiPanelCollapsed, setAiPanelCollapsed] = useState(true);
+  const [cleanStyle, setCleanStyle] = useState<"bullets" | "summary" | "table" | "timeline">("bullets");
 
   // Reading enhancements
   const [fontSize, setFontSize] = useState(16);
@@ -350,6 +437,21 @@ export default function SubjectBinder() {
   const [restructuredText, setRestructuredText] = useState("");
   const [generatingRestructure, setGeneratingRestructure] = useState(false);
 
+  // --- New Sandbox, Previews & History States ---
+  const [restructurePreviewText, setRestructurePreviewText] = useState("");
+  const [originalTextBackup, setOriginalTextBackup] = useState("");
+  const [notesHistoryBackup, setNotesHistoryBackup] = useState<string | null>(null);
+  const [showUndoToast, setShowUndoToast] = useState(false);
+  const [isSandboxPreviewing, setIsSandboxPreviewing] = useState(false);
+  const [restructureContext, setRestructureContext] = useState<{
+    targetChapter: string;
+    beforeText: string;
+    afterText: string;
+    chapterHeader: string;
+    hasSources: boolean;
+    sourcesLine: string;
+  } | null>(null);
+
   // Socratic Explainer State
   const [socraticText, setSocraticText] = useState("");
   const [socraticAnswer, setSocraticAnswer] = useState("");
@@ -359,27 +461,29 @@ export default function SubjectBinder() {
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
   // --- Text-to-Speech (TTS) & Export States & Hooks ---
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [currentBlockIndex, setCurrentBlockIndex] = useState<number | null>(null);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoice, setSelectedVoice] = useState("");
-  const [speechRate, setSpeechRate] = useState(1.0);
-  const [speechPitch, setSpeechPitch] = useState(1.0);
-
-  const isPlayingRef = useRef(false);
-  const currentBlockIndexRef = useRef<number | null>(null);
-  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
-  const selectedVoiceRef = useRef("");
-  const speechRateRef = useRef(1.0);
-  const speechPitchRef = useRef(1.0);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const {
+    isPlaying,
+    isPaused,
+    currentBlockIndex,
+    voices,
+    selectedVoice,
+    speechRate,
+    speechPitch,
+    play: handlePlayTTS,
+    pause: handlePauseTTS,
+    stop: handleStopTTS,
+    setVoice: handleVoiceChange,
+    setRate: handleRateChange,
+    setPitch: handlePitchChange,
+    speakBlock,
+  } = useSpeechSynthesis(markdown);
 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // --- Typography & Width States & Google Fonts Loader ---
   const [activeFont, setActiveFont] = useState("garamond");
   const [pageWidth, setPageWidth] = useState(820);
+  const [showReaderPrefs, setShowReaderPrefs] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -396,213 +500,6 @@ export default function SubjectBinder() {
     };
   }, []);
 
-  // Synchronize refs to prevent stale closures in SpeechSynthesis callbacks
-  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
-  useEffect(() => { currentBlockIndexRef.current = currentBlockIndex; }, [currentBlockIndex]);
-  useEffect(() => { voicesRef.current = voices; }, [voices]);
-  useEffect(() => { selectedVoiceRef.current = selectedVoice; }, [selectedVoice]);
-  useEffect(() => { speechRateRef.current = speechRate; }, [speechRate]);
-  useEffect(() => { speechPitchRef.current = speechPitch; }, [speechPitch]);
-
-  // Load voices on mount
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-
-    const loadVoices = () => {
-      const list = window.speechSynthesis.getVoices();
-      
-      // Filter English and Hindi first
-      const primaryVoices = list.filter(v => v.lang.startsWith("en") || v.lang.startsWith("hi"));
-      const otherVoices = list.filter(v => !v.lang.startsWith("en") && !v.lang.startsWith("hi"));
-      
-      // Helper to evaluate voice premium/human-like quality
-      const isPremiumVoice = (v: SpeechSynthesisVoice) => {
-        const name = v.name.toLowerCase();
-        return name.includes("enhanced") || 
-               name.includes("google") || 
-               name.includes("siri") || 
-               name.includes("premium") || 
-               name.includes("natural") || 
-               name.includes("samantha") || 
-               name.includes("daniel");
-      };
-
-      // Sort primary voices: premium ones first
-      const sortedPrimary = [...primaryVoices].sort((a, b) => {
-        const aPrem = isPremiumVoice(a);
-        const bPrem = isPremiumVoice(b);
-        if (aPrem && !bPrem) return -1;
-        if (!aPrem && bPrem) return 1;
-        return 0;
-      });
-
-      const sorted = [...sortedPrimary, ...otherVoices];
-
-      // Ensure unique voice URIs to prevent duplicate keys in dropdown
-      const uniqueVoices: SpeechSynthesisVoice[] = [];
-      const seenURIs = new Set<string>();
-      for (const v of sorted) {
-        if (!seenURIs.has(v.voiceURI)) {
-          seenURIs.add(v.voiceURI);
-          uniqueVoices.push(v);
-        }
-      }
-
-      setVoices(uniqueVoices);
-
-      if (uniqueVoices.length > 0) {
-        // Default to the first sorted primary voice (which will be premium if available!)
-        // Prefer "Google US English", "Samantha", or Siri, otherwise take the first premium one
-        const preferred = sortedPrimary.find(v =>
-          v.name.includes("Google US English") ||
-          v.name.includes("Samantha") ||
-          v.name.includes("Siri") ||
-          v.name.includes("Daniel")
-        ) || sortedPrimary.find(isPremiumVoice) || sortedPrimary[0];
-        
-        setSelectedVoice(preferred ? preferred.voiceURI : uniqueVoices[0].voiceURI);
-      }
-    };
-
-    loadVoices();
-
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-
-    return () => {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
-  const cleanMarkdownForSpeech = (text: string): string => {
-    return text
-      .replace(/#+ Subject:/gi, "")
-      .replace(/#+/g, "")
-      .replace(/\*\*|__/g, "")
-      .replace(/\*|_/g, "")
-      .replace(/[-*•]\s+/g, "")
-      .replace(/\|\s*[-:]+\s*\|/g, "")
-      .replace(/\|/g, " ")
-      .replace(/>\s?/g, "")
-      .replace(/---\n/g, "")
-      .trim();
-  };
-
-  const speakBlock = (index: number) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-
-    const blocks = markdown.replace(/\n\s*---\s*\n/g, "\n---\n").split("\n\n");
-
-    if (index >= blocks.length || index < 0) {
-      window.speechSynthesis.cancel();
-      setIsPlaying(false);
-      setIsPaused(false);
-      setCurrentBlockIndex(null);
-      return;
-    }
-
-    const rawBlockText = blocks[index].trim();
-    const speakableText = cleanMarkdownForSpeech(rawBlockText);
-
-    if (!speakableText.trim()) {
-      // Skip empty block
-      speakBlock(index + 1);
-      return;
-    }
-
-    setCurrentBlockIndex(index);
-    setIsPlaying(true);
-    setIsPaused(false);
-
-    window.speechSynthesis.cancel();
-
-    setTimeout(() => {
-      if (!isPlayingRef.current) return;
-
-      const utterance = new SpeechSynthesisUtterance(speakableText);
-      const activeVoice = voicesRef.current.find(v => v.voiceURI === selectedVoiceRef.current);
-      if (activeVoice) {
-        utterance.voice = activeVoice;
-      }
-
-      utterance.rate = speechRateRef.current;
-      utterance.pitch = speechPitchRef.current;
-
-      utterance.onend = () => {
-        if (isPlayingRef.current && !window.speechSynthesis.paused) {
-          speakBlock(index + 1);
-        }
-      };
-
-      utterance.onerror = (e) => {
-        console.warn("SpeechSynthesis utterance error:", e);
-      };
-
-      utteranceRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
-    }, 50);
-  };
-
-  const handlePlayTTS = () => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-
-    if (isPaused) {
-      window.speechSynthesis.resume();
-      setIsPaused(false);
-      setIsPlaying(true);
-      return;
-    }
-
-    const startIndex = currentBlockIndex !== null ? currentBlockIndex : 0;
-    isPlayingRef.current = true;
-    speakBlock(startIndex);
-  };
-
-  const handlePauseTTS = () => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    window.speechSynthesis.pause();
-    setIsPaused(true);
-    setIsPlaying(false);
-  };
-
-  const handleStopTTS = () => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    isPlayingRef.current = false;
-    window.speechSynthesis.cancel();
-    setIsPlaying(false);
-    setIsPaused(false);
-    setCurrentBlockIndex(null);
-  };
-
-  const handleVoiceChange = (voiceURI: string) => {
-    setSelectedVoice(voiceURI);
-    if (isPlayingRef.current && currentBlockIndex !== null) {
-      setTimeout(() => {
-        speakBlock(currentBlockIndexRef.current || 0);
-      }, 100);
-    }
-  };
-
-  const handleRateChange = (newRate: number) => {
-    setSpeechRate(newRate);
-    if (isPlayingRef.current && currentBlockIndex !== null) {
-      setTimeout(() => {
-        speakBlock(currentBlockIndexRef.current || 0);
-      }, 100);
-    }
-  };
-
-  const handlePitchChange = (newPitch: number) => {
-    setSpeechPitch(newPitch);
-    if (isPlayingRef.current && currentBlockIndex !== null) {
-      setTimeout(() => {
-        speakBlock(currentBlockIndexRef.current || 0);
-      }, 100);
-    }
-  };
 
   // --- Export Utilities ---
   const cleanInlineMarkdown = (text: string): string => {
@@ -1501,115 +1398,7 @@ export default function SubjectBinder() {
   };
 
   const renderTTSPlayer = () => {
-    const fontOptions: DropdownOption[] = [
-      { value: "garamond", label: "EB Garamond", icon: "📜", description: "Warm book serif" },
-      { value: "caveat", label: "Cozy Cursive", icon: "✍️", description: "Soft journal script" },
-      { value: "architect", label: "Architect Hand", icon: "📐", description: "Technical hand-lettering" },
-      { value: "cinzel", label: "Classical Roman", icon: "🏛️", description: "Roman display serif" },
-      { value: "georgia", label: "Georgia Book", icon: "📚", description: "Standard book serif" },
-      { value: "sans", label: "Modern Sans", icon: "🌐", description: "High legibility screen" },
-    ];
-
-    return (
-      <div 
-        className="w-full mx-auto mb-4 bg-white/95 dark:bg-[#111726]/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 px-4 py-3 rounded-2xl shadow-xl flex flex-wrap items-center gap-4 transition-all duration-300 select-none text-slate-800 dark:text-slate-200 shrink-0 relative z-30"
-        style={{ maxWidth: `${pageWidth}px` }}
-      >
-        <div className="flex items-center gap-2 pr-2 border-r border-slate-200 dark:border-slate-800 shrink-0">
-          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${isPlaying ? "bg-emerald-500 animate-pulse" : isPaused ? "bg-amber-500 animate-pulse" : "bg-slate-300 dark:bg-slate-600"}`} />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            {isPlaying ? `Speaking block ${currentBlockIndex !== null ? currentBlockIndex + 1 : ""}` : isPaused ? "Paused" : "Notes TTS"}
-          </span>
-        </div>
-
-        {/* Audio controls */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {isPlaying ? (
-            <button
-              onClick={handlePauseTTS}
-              className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white transition cursor-pointer animate-fade-in"
-              title="Pause Reading"
-            >
-              <Pause className="h-4 w-4" />
-            </button>
-          ) : (
-            <button
-              onClick={handlePlayTTS}
-              className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition cursor-pointer animate-fade-in"
-              title="Play Reading"
-            >
-              <Play className="h-4 w-4 shrink-0 fill-current" />
-            </button>
-          )}
-          
-          <button
-            onClick={handleStopTTS}
-            disabled={!isPlaying && !isPaused}
-            className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white disabled:bg-slate-100 dark:disabled:bg-slate-900 disabled:text-slate-300 dark:disabled:text-slate-700 transition cursor-pointer disabled:cursor-not-allowed"
-            title="Stop Reading"
-          >
-            <Square className="h-4 w-4 shrink-0 fill-current" />
-          </button>
-        </div>
-
-        {/* Voice Selection */}
-        {voices.length > 0 && (
-          <div className="w-40 sm:w-48 shrink-0">
-            <CustomDropdown
-              options={voices.map(v => ({
-                value: v.voiceURI,
-                label: v.name.replace(/Microsoft|Google|Apple/g, "").trim(),
-                icon: "🗣️",
-                description: v.lang
-              }))}
-              value={selectedVoice}
-              onChange={handleVoiceChange}
-              placeholder="Select Speech Voice"
-            />
-          </div>
-        )}
-
-        {/* Speed Slider */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 select-none">Speed</span>
-          <input 
-            type="range" 
-            min="0.5" 
-            max="2.0" 
-            step="0.1" 
-            value={speechRate} 
-            onChange={(e) => handleRateChange(parseFloat(e.target.value))} 
-            className="w-14 h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-          />
-          <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 w-8">{speechRate}x</span>
-        </div>
-
-        {/* Typography CustomDropdown */}
-        <div className="w-40 sm:w-44 shrink-0 border-l border-slate-200 dark:border-slate-800 pl-2">
-          <CustomDropdown
-            options={fontOptions}
-            value={activeFont}
-            onChange={setActiveFont}
-            placeholder="Select Font"
-          />
-        </div>
-
-        {/* Page Width Slider */}
-        <div className="flex items-center gap-2 shrink-0 border-l border-slate-200 dark:border-slate-800 pl-2">
-          <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 select-none">Width</span>
-          <input 
-            type="range" 
-            min="600" 
-            max="1200" 
-            step="10" 
-            value={pageWidth} 
-            onChange={(e) => setPageWidth(parseInt(e.target.value))} 
-            className="w-20 h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-          />
-          <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 w-12">{pageWidth}px</span>
-        </div>
-      </div>
-    );
+    return null;
   };
 
   // Monitor dark mode class on document element
@@ -1657,10 +1446,7 @@ export default function SubjectBinder() {
     const selection = window.getSelection();
 
     if (!selection || selection.isCollapsed || !selection.toString().trim()) {
-      if (!isAnnotating && !isRestructuring && !socraticAnswer) {
-        setSelectedText("");
-        setPopoverPosition(null);
-      }
+      // Keep selection toolbar open even after clicking outside, until user explicitly clears it!
       return;
     }
 
@@ -1671,12 +1457,8 @@ export default function SubjectBinder() {
       
       // Ensure selection is inside preview container
       if (container && container.contains(range.commonAncestorContainer)) {
-        const rect = range.getBoundingClientRect();
         setSelectedText(text);
-        setPopoverPosition({
-          top: rect.top + window.scrollY - 52, // 52px above selection
-          left: rect.left + window.scrollX + rect.width / 2, // centered
-        });
+        setPopoverPosition({ top: 0, left: 0 }); // Fixed Top position indicator
       }
     }
   };
@@ -1773,34 +1555,115 @@ export default function SubjectBinder() {
     if (!selectedText || !restructuredText) return;
     
     // Alphanumeric sliding window search to locate selections ignoring markdown tags
+    // Robust 4-Stage selection matching search algorithm to locate browser selections in raw markdown
     const findMarkdownTextRange = (md: string, sel: string): { startIdx: number; endIdx: number } | null => {
-      const exactIdx = md.indexOf(sel);
+      if (!sel || !sel.trim()) return null;
+      const trimmedSel = sel.trim();
+      
+      // Stage 1: Exact Match (Fastest & perfect for plain text)
+      const exactIdx = md.indexOf(trimmedSel);
       if (exactIdx !== -1) {
-        return { startIdx: exactIdx, endIdx: exactIdx + sel.length };
+        return { startIdx: exactIdx, endIdx: exactIdx + trimmedSel.length };
       }
 
-      const cleanString = (str: string) => str.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-      const cleanSelected = cleanString(sel);
-      if (!cleanSelected) return null;
+      // Pre-extract words with indices from raw markdown for stages 2, 3, and 4
+      interface WordToken {
+        word: string;
+        start: number;
+        end: number;
+      }
+      const mdWords: WordToken[] = [];
+      const wordRegex = /[a-z0-9]+/gi;
+      let match;
+      while ((match = wordRegex.exec(md)) !== null) {
+        mdWords.push({
+          word: match[0].toLowerCase(),
+          start: match.index,
+          end: match.index + match[0].length
+        });
+      }
 
-      const mdLen = md.length;
-      const cleanToRawIdx: number[] = [];
-      let cleanMd = "";
+      const selWords = trimmedSel.toLowerCase().match(/[a-z0-9]+/g) || [];
+      if (selWords.length === 0) return null;
 
-      for (let i = 0; i < mdLen; i++) {
-        const char = md[i];
-        if (/[a-zA-Z0-9]/.test(char)) {
-          cleanMd += char.toLowerCase();
-          cleanToRawIdx.push(i);
+      // Stage 2: Strict Consecutive Word Sequence Match (Ignores formatting markdown like *, **, `, etc.)
+      for (let i = 0; i <= mdWords.length - selWords.length; i++) {
+        let isMatch = true;
+        for (let j = 0; j < selWords.length; j++) {
+          if (mdWords[i + j].word !== selWords[j]) {
+            isMatch = false;
+            break;
+          }
+        }
+        if (isMatch) {
+          return {
+            startIdx: mdWords[i].start,
+            endIdx: mdWords[i + selWords.length - 1].end
+          };
         }
       }
 
-      const matchIdx = cleanMd.indexOf(cleanSelected);
-      if (matchIdx !== -1) {
-        const sIdx = cleanToRawIdx[matchIdx];
-        const cleanEndIdx = matchIdx + cleanSelected.length - 1;
-        const eIdx = cleanToRawIdx[cleanEndIdx] + 1;
-        return { startIdx: sIdx, endIdx: eIdx };
+      // Stage 3: Greedy Ordered Word Search (Allows intervening characters/words like URLs inside markdown links [Text](url))
+      let bestWindow = { startIdx: -1, endIdx: -1, score: 0, length: Infinity };
+      const maxSkipped = 15; // Allow up to 15 skipped words (e.g. url segments or format markers)
+
+      for (let i = 0; i < mdWords.length; i++) {
+        let selIdx = 0;
+        let mdIdx = i;
+        let skipped = 0;
+        
+        while (selIdx < selWords.length && mdIdx < mdWords.length && skipped <= maxSkipped) {
+          if (mdWords[mdIdx].word === selWords[selIdx]) {
+            selIdx++;
+          } else {
+            skipped++;
+          }
+          mdIdx++;
+        }
+        
+        if (selIdx === selWords.length) {
+          const windowLength = mdIdx - i;
+          const score = selWords.length / windowLength;
+          if (score > bestWindow.score || (score === bestWindow.score && windowLength < bestWindow.length)) {
+            bestWindow = {
+              startIdx: mdWords[i].start,
+              endIdx: mdWords[mdIdx - 1].end,
+              score: score,
+              length: windowLength
+            };
+          }
+        }
+      }
+
+      if (bestWindow.score > 0 && bestWindow.score >= 0.5) {
+        return { startIdx: bestWindow.startIdx, endIdx: bestWindow.endIdx };
+      }
+
+      // Stage 4: Fuzzy Sliding Window Word Overlap Match (Best-effort fallback for slightly modified selections)
+      let bestFuzzy = { startIdx: -1, endIdx: -1, score: 0 };
+      const windowSize = Math.max(selWords.length, 5);
+
+      for (let i = 0; i <= mdWords.length - windowSize; i++) {
+        const windowWords = mdWords.slice(i, i + windowSize);
+        const windowWordSet = new Set(windowWords.map(w => w.word));
+        
+        let matchCount = 0;
+        selWords.forEach(w => {
+          if (windowWordSet.has(w)) matchCount++;
+        });
+        
+        const score = matchCount / selWords.length;
+        if (score > bestFuzzy.score && score >= 0.6) {
+          bestFuzzy = {
+            startIdx: mdWords[i].start,
+            endIdx: windowWords[windowWords.length - 1].end,
+            score: score
+          };
+        }
+      }
+
+      if (bestFuzzy.score >= 0.6) {
+        return { startIdx: bestFuzzy.startIdx, endIdx: bestFuzzy.endIdx };
       }
 
       return null;
@@ -1811,6 +1674,9 @@ export default function SubjectBinder() {
       alert("Could not locate the selected text in the original notes markdown. It might have been modified.");
       return;
     }
+
+    // Save history backup for instant Undo capability
+    setNotesHistoryBackup(markdown);
 
     const updatedMarkdown = 
       markdown.substring(0, range.startIdx) + 
@@ -1824,6 +1690,12 @@ export default function SubjectBinder() {
     setRestructuredText("");
     setSelectedText("");
     setPopoverPosition(null);
+
+    // Show visual undo notification toast
+    setShowUndoToast(true);
+    setTimeout(() => {
+      setShowUndoToast(false);
+    }, 10000);
 
     // Auto-save the notes back to DB/vector store immediately to persist
     setTimeout(async () => {
@@ -1896,14 +1768,47 @@ export default function SubjectBinder() {
       const subj = params.get("subject");
       const activeSubj = subj || HARDCODED_SUBJECTS[0];
       setSubject(activeSubj);
-      fetchSubjectNotes(activeSubj);
+      fetchSubjectNotesWithProcessing(activeSubj);
       loadMindmap(activeSubj);
       fetchHighlights(activeSubj);
     }
   }, []);
 
+  // Poll task progress when processing is running
+  useEffect(() => {
+    if (!processingTaskId || !processing) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/tasks/${processingTaskId}`);
+        const task = await res.json();
+        if (task.progress !== undefined) setTaskProgress(task.progress);
+        if (task.current_node) setTaskNode(task.current_node);
+        if (
+          task.status === "completed" ||
+          task.status === "completed_with_errors"
+        ) {
+          clearInterval(interval);
+          setProcessingTaskId(null);
+          setProcessing(false);
+          fetchSubjectNotes(subject);
+        } else if (task.status === "failed" || task.status === "cancelled") {
+          clearInterval(interval);
+          setProcessingTaskId(null);
+          setProcessing(false);
+          setErrorMessage(
+            task.error || "Processing failed or was cancelled."
+          );
+        }
+      } catch {
+        // wait for next poll
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [processingTaskId, processing, subject]);
+
   const fetchSubjectNotes = async (subjName: string) => {
     setLoading(true);
+    setProcessing(false);
     setErrorMessage("");
     try {
       const res = await fetch(`/api/subject?subject=${encodeURIComponent(subjName)}`, {
@@ -1912,6 +1817,15 @@ export default function SubjectBinder() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
+        if (data.status === "processing") {
+          setProcessing(true);
+          setProcessingTaskId(data.task_id);
+          setLoading(false);
+          return;
+        }
+        if (data.status === "processing_error") {
+          setErrorMessage("Processing completed with some errors.");
+        }
         setMarkdown(data.markdown);
         setTopics(data.topics || []);
         setSources(data.sources || []);
@@ -1922,7 +1836,13 @@ export default function SubjectBinder() {
       setErrorMessage(err.message || "Network error loading subject notes.");
     } finally {
       setLoading(false);
+      setProcessing(false);
     }
+  };
+
+  const fetchSubjectNotesWithProcessing = async (subjName: string) => {
+    setProcessing(true);
+    await fetchSubjectNotes(subjName);
   };
 
   const loadMindmap = async (subjName: string) => {
@@ -1955,7 +1875,7 @@ export default function SubjectBinder() {
   };
 
   const handleGenerateMindmap = async () => {
-    if (topics.length === 0) {
+    if (parsedTOC.length === 0) {
       setErrorMessage("No topics available to generate mindmap.");
       return;
     }
@@ -1963,14 +1883,39 @@ export default function SubjectBinder() {
     setLoadingMindmap(true);
     setErrorMessage("");
     try {
+      // Split the raw markdown notes by chapter (H2 headings starting with ## )
+      const normalizedMarkdown = markdown.replace(/^##\s+/gm, "\n## ");
+      const markdownBlocks = normalizedMarkdown.split("\n## ");
+      const chapterContentMap: Record<string, string> = {};
+      
+      // Parse each chapter section
+      for (let i = 1; i < markdownBlocks.length; i++) {
+        const block = markdownBlocks[i];
+        const newlineIdx = block.indexOf("\n");
+        const heading = newlineIdx === -1 ? block.trim() : block.substring(0, newlineIdx).trim();
+        const content = newlineIdx === -1 ? "" : block.substring(newlineIdx).trim();
+        
+        const cleanHeading = heading.replace(/^Topic:\s*/i, "").trim();
+        chapterContentMap[cleanHeading] = content;
+        chapterContentMap[heading] = content;
+      }
+
       // Generate mindmap for each topic
-      for (const topic of topics) {
+      for (const topic of parsedTOC) {
+        // Retrieve chapter content from our parsed map, or use full markdown as fallback
+        const topicContent = chapterContentMap[topic.name] || chapterContentMap[topic.fullName] || markdown;
+        
         await fetch("/api/mindmaps/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subject, topic: topic.title })
+          body: JSON.stringify({ 
+            subject, 
+            topic: topic.name,
+            content: topicContent 
+          })
         });
       }
+      
       // Reload mindmap
       await loadMindmap(subject);
     } catch (err: any) {
@@ -2064,6 +2009,13 @@ export default function SubjectBinder() {
     setTopics(parsedTopics);
   }, [markdown]);
 
+  // Synchronise selectedChapterName default value with parsedTOC
+  useEffect(() => {
+    if (parsedTOC.length > 0 && !selectedChapterName) {
+      setSelectedChapterName(parsedTOC[0].name);
+    }
+  }, [parsedTOC, selectedChapterName]);
+
   // Handle saving notes back to vector store
   const handleSaveNotes = async () => {
     if (saving) return;
@@ -2139,49 +2091,304 @@ export default function SubjectBinder() {
 
   // Scroll to selected topic heading inside the rendered preview
   const handleScrollToTopic = (fullName: string, topicName: string) => {
-    if (activeTab === "edit" && textareaRef.current) {
-      const targetHeader = `## Topic: ${fullName}`;
-      const altHeader = `## ${fullName}`;
-      const targetHeaderShort = `## Topic: ${topicName}`;
-      const altHeaderShort = `## ${topicName}`;
-      
-      const subHeader = `### ${fullName}`;
-      const subHeaderShort = `### ${topicName}`;
-      
-      let startIdx = markdown.indexOf(targetHeader);
-      if (startIdx === -1) startIdx = markdown.indexOf(altHeader);
-      if (startIdx === -1) startIdx = markdown.indexOf(targetHeaderShort);
-      if (startIdx === -1) startIdx = markdown.indexOf(altHeaderShort);
-      if (startIdx === -1) startIdx = markdown.indexOf(subHeader);
-      if (startIdx === -1) startIdx = markdown.indexOf(subHeaderShort);
-      
-      if (startIdx !== -1) {
-        textareaRef.current.focus();
-        let matchedHeader = targetHeader;
-        if (markdown.indexOf(altHeader) === startIdx) matchedHeader = altHeader;
-        else if (markdown.indexOf(targetHeaderShort) === startIdx) matchedHeader = targetHeaderShort;
-        else if (markdown.indexOf(altHeaderShort) === startIdx) matchedHeader = altHeaderShort;
-        else if (markdown.indexOf(subHeader) === startIdx) matchedHeader = subHeader;
-        else if (markdown.indexOf(subHeaderShort) === startIdx) matchedHeader = subHeaderShort;
+    let tabChanged = false;
+    if (activeTab !== "preview" && activeTab !== "split" && activeTab !== "edit") {
+      setActiveTab("preview");
+      tabChanged = true;
+    }
+
+    const scrollTask = () => {
+      if (activeTab === "edit" && textareaRef.current) {
+        const targetHeader = `## Topic: ${fullName}`;
+        const altHeader = `## ${fullName}`;
+        const targetHeaderShort = `## Topic: ${topicName}`;
+        const altHeaderShort = `## ${topicName}`;
         
-        textareaRef.current.setSelectionRange(startIdx, startIdx + matchedHeader.length);
-        const lineHeight = 20;
-        const lineCount = markdown.substring(0, startIdx).split("\n").length;
-        textareaRef.current.scrollTop = lineCount * lineHeight - 100;
+        const subHeader = `### ${fullName}`;
+        const subHeaderShort = `### ${topicName}`;
+        
+        let startIdx = markdown.indexOf(targetHeader);
+        if (startIdx === -1) startIdx = markdown.indexOf(altHeader);
+        if (startIdx === -1) startIdx = markdown.indexOf(targetHeaderShort);
+        if (startIdx === -1) startIdx = markdown.indexOf(altHeaderShort);
+        if (startIdx === -1) startIdx = markdown.indexOf(subHeader);
+        if (startIdx === -1) startIdx = markdown.indexOf(subHeaderShort);
+        
+        if (startIdx !== -1) {
+          textareaRef.current.focus();
+          let matchedHeader = targetHeader;
+          if (markdown.indexOf(altHeader) === startIdx) matchedHeader = altHeader;
+          else if (markdown.indexOf(targetHeaderShort) === startIdx) matchedHeader = targetHeaderShort;
+          else if (markdown.indexOf(altHeaderShort) === startIdx) matchedHeader = altHeaderShort;
+          else if (markdown.indexOf(subHeader) === startIdx) matchedHeader = subHeader;
+          else if (markdown.indexOf(subHeaderShort) === startIdx) matchedHeader = subHeaderShort;
+          
+          textareaRef.current.setSelectionRange(startIdx, startIdx + matchedHeader.length);
+          const lineHeight = 20;
+          const lineCount = markdown.substring(0, startIdx).split("\n").length;
+          textareaRef.current.scrollTop = lineCount * lineHeight - 100;
+        }
+        return;
       }
+
+      // Track selected chapter for Clean Chapter button when clicking sidebar topic links
+      const matchedParent = parsedTOC.find(t => 
+        t.name === topicName || 
+        t.fullName === fullName || 
+        t.subsections?.some(sub => sub.name === topicName || sub.fullName === fullName)
+      );
+      if (matchedParent) {
+        setSelectedChapterName(matchedParent.name);
+      }
+
+      // Adaptive Chapter Filtering for preview/split modes
+      let filterChanged = false;
+      if (activeChapterFilter !== "All") {
+        if (matchedParent && activeChapterFilter !== matchedParent.name) {
+          setActiveChapterFilter(matchedParent.name);
+          filterChanged = true;
+        }
+      }
+
+      const performScroll = () => {
+        if (previewContainerRef.current) {
+          const escapedFull = encodeURIComponent(fullName);
+          const escapedShort = encodeURIComponent(topicName);
+          let targetElement = previewContainerRef.current.querySelector(`[data-topic-id="${escapedFull}"]`);
+          if (!targetElement) {
+            targetElement = previewContainerRef.current.querySelector(`[data-topic-id="${escapedShort}"]`);
+          }
+          if (!targetElement) {
+            const cleanTopic = topicName.startsWith("Topic:") ? topicName.replace("Topic:", "").trim() : topicName;
+            const escapedClean = encodeURIComponent(cleanTopic);
+            targetElement = previewContainerRef.current.querySelector(`[data-topic-id="${escapedClean}"]`);
+          }
+          if (targetElement) {
+            targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      };
+
+      if (filterChanged) {
+        // Wait for React to re-render the single chapter view before scrolling
+        setTimeout(performScroll, 80);
+      } else {
+        performScroll();
+      }
+    };
+
+    if (tabChanged) {
+      setTimeout(scrollTask, 120);
+    } else {
+      scrollTask();
+    }
+  };
+
+  // Stream clean/restructuring for the active filtered chapter
+  const handleCleanChapter = async (targetChapter: string) => {
+    if (!targetChapter || !markdown || isCleaningChapter) return;
+
+    const lines = markdown.split("\n");
+    let startLineIdx = -1;
+    let endLineIdx = lines.length;
+
+    // Find the exact chapter header line
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line === `## Topic: ${targetChapter}` || line === `## ${targetChapter}`) {
+        startLineIdx = i;
+        break;
+      }
+    }
+
+    if (startLineIdx === -1) {
+      // Fuzzy match fallback
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith("## ") && line.includes(targetChapter)) {
+          startLineIdx = i;
+          break;
+        }
+      }
+    }
+
+    if (startLineIdx === -1) {
+      alert(`Could not locate the chapter "${targetChapter}" content in markdown notes.`);
       return;
     }
 
-    if (previewContainerRef.current) {
-      const escapedFull = encodeURIComponent(fullName);
-      const escapedShort = encodeURIComponent(topicName);
-      let targetElement = previewContainerRef.current.querySelector(`[data-topic-id="${escapedFull}"]`);
-      if (!targetElement) {
-        targetElement = previewContainerRef.current.querySelector(`[data-topic-id="${escapedShort}"]`);
+    // Find the next line starting with "## " (next chapter heading)
+    for (let i = startLineIdx + 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line.startsWith("## ")) {
+        endLineIdx = i;
+        break;
       }
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // Decouple before, chapter, and after segments
+    const beforeLines = lines.slice(0, startLineIdx);
+    const chapterLines = lines.slice(startLineIdx, endLineIdx);
+    const afterLines = lines.slice(endLineIdx);
+
+    const beforeText = beforeLines.join("\n") + (beforeLines.length > 0 ? "\n" : "");
+    const chapterContent = chapterLines.join("\n");
+    const afterText = (afterLines.length > 0 ? "\n" : "") + afterLines.join("\n");
+
+    // --- Shielding Heading Boundaries Programmatically ---
+    const chapterHeader = chapterLines[0];
+    let hasSources = false;
+    let sourcesLine = "";
+    if (chapterLines.length > 1 && chapterLines[1].trim().startsWith("* **Sources**:")) {
+      hasSources = true;
+      sourcesLine = chapterLines[1];
+    }
+
+    const bodyLines = hasSources ? chapterLines.slice(2) : chapterLines.slice(1);
+    const bodyText = bodyLines.join("\n").trim();
+
+    // Prepare Sandbox Workspace Previews
+    setOriginalTextBackup(chapterContent);
+    setRestructurePreviewText("");
+    setIsSandboxPreviewing(true);
+    setRestructureContext({
+      targetChapter,
+      beforeText,
+      afterText,
+      chapterHeader,
+      hasSources,
+      sourcesLine
+    });
+
+    setIsCleaningChapter(true);
+    let accumulatedText = "";
+
+    try {
+      const response = await fetch("/api/notes/restructure/stream", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAIHeaders(),
+        },
+        body: JSON.stringify({
+          text: bodyText,
+          style: cleanStyle,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Stream request failed: ${response.statusText}`);
       }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) throw new Error("Stream response body is not readable");
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        accumulatedText += chunk;
+        setRestructurePreviewText(accumulatedText);
+      }
+
+    } catch (err: any) {
+      console.error("Error cleaning chapter:", err);
+      // Display error inside the preview workspace gracefully without corrupting notes
+      setRestructurePreviewText((prev) => 
+        prev + `\n\n⚠️ Restructuring stopped due to an error: ${err.message || err}. Please try again.`
+      );
+    } finally {
+      setIsCleaningChapter(false);
+    }
+  };
+
+  // Transactionally apply the completed restructured notes to live markdown
+  const handleApplyChapterClean = async () => {
+    if (!restructureContext) return;
+    const { beforeText, afterText, chapterHeader, hasSources, sourcesLine } = restructureContext;
+
+    // Save history backup for instant Undo capability
+    setNotesHistoryBackup(markdown);
+
+    // Deterministically re-assemble headers and body
+    const headerPrefix = chapterHeader + "\n" + (hasSources ? sourcesLine + "\n" : "") + "\n";
+    const finalizedChapterText = headerPrefix + restructurePreviewText.trim();
+    const finalMarkdown = beforeText + finalizedChapterText + afterText;
+
+    // Update active markdown notes state
+    setMarkdown(finalMarkdown);
+    setIsSandboxPreviewing(false);
+    setRestructurePreviewText("");
+    setOriginalTextBackup("");
+    setRestructureContext(null);
+
+    // Show visual undo notification toast
+    setShowUndoToast(true);
+    const toastTimer = setTimeout(() => {
+      setShowUndoToast(false);
+    }, 10000);
+
+    // Auto-save the notes with the fully updated markdown content
+    setSaving(true);
+    setSaveSuccess(false);
+    setErrorMessage("");
+    try {
+      const saveRes = await fetch("/api/subject", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAIHeaders(),
+        },
+        body: JSON.stringify({
+          subject,
+          markdown: finalMarkdown,
+        }),
+      });
+      if (saveRes.ok) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        const errorData = await saveRes.json().catch(() => ({}));
+        setErrorMessage(errorData.error || "Failed to save cleaned notes.");
+      }
+    } catch (saveErr: any) {
+      console.error("Auto-save failed after restructuring:", saveErr);
+      setErrorMessage(saveErr.message || "Error auto-saving cleaned notes.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Revert last restructure using backup history state
+  const handleUndoRestructure = async () => {
+    if (!notesHistoryBackup) return;
+    const previousMarkdown = notesHistoryBackup;
+    setMarkdown(previousMarkdown);
+    setNotesHistoryBackup(null);
+    setShowUndoToast(false);
+
+    setSaving(true);
+    try {
+      await fetch("/api/subject", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAIHeaders(),
+        },
+        body: JSON.stringify({
+          subject,
+          markdown: previousMarkdown,
+        }),
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (e) {
+      console.error("Undo save failed:", e);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -2271,7 +2478,6 @@ export default function SubjectBinder() {
     // Normalization: clean up consecutive back-to-back dividers or spacing
     const normalizedText = text.replace(/\n\s*---\s*\n/g, "\n---\n");
     const blocks = normalizedText.split("\n\n");
-    const renderedElements: React.JSX.Element[] = [];
 
     // Curated Academic Serif Typography Scheme (warm book color tone)
     const textStyle = { 
@@ -2364,7 +2570,7 @@ export default function SubjectBinder() {
       return result.filter(r => r !== null);
     };
 
-    // Helpler to parse inline markdown bold (**text**), italics (*text*), and raw characters
+    // Helper to parse inline markdown bold (**text**), italics (*text*), and raw characters
     const renderInlineFormatting = (content: string, keyPrefix: string) => {
       if (!content) return [];
       
@@ -2398,10 +2604,23 @@ export default function SubjectBinder() {
       });
     };
 
-    // Helper to parse lists (handles nested bullet markers and headers)
     const parseListItem = (line: string, keyPrefix: string) => {
       const cleanLine = line.replace(/^[-*•]\s+/, "").trim();
       return renderInlineFormatting(cleanLine, keyPrefix);
+    };
+
+    // --- Dynamic Chapter Grouping Parser ---
+    interface ChapterGroup {
+      title: string;
+      fullName: string;
+      elements: React.JSX.Element[];
+    }
+
+    const chapterGroups: ChapterGroup[] = [];
+    let currentGroup: ChapterGroup = {
+      title: "Introduction",
+      fullName: "Introduction",
+      elements: []
     };
 
     let blockKey = 0;
@@ -2411,9 +2630,29 @@ export default function SubjectBinder() {
       if (!block) continue;
       blockKey++;
 
+      const lines = block.split("\n");
+      const firstLine = lines[0].trim();
+
+      // If it is a Chapter Header (H2)
+      if (firstLine.startsWith("## ")) {
+        const heading = firstLine.replace("## ", "").trim();
+        const displayHeading = heading.startsWith("Topic:") ? heading.replace("Topic:", "").trim() : heading;
+        
+        if (currentGroup.elements.length > 0 || currentGroup.title !== "Introduction") {
+          chapterGroups.push(currentGroup);
+        }
+
+        currentGroup = {
+          title: displayHeading,
+          fullName: heading,
+          elements: []
+        };
+        continue;
+      }
+
       // Divider block
       if (block === "---") {
-        renderedElements.push(
+        currentGroup.elements.push(
           <div key={`div-${blockKey}`} className="my-10 flex justify-center text-slate-300 dark:text-slate-700 tracking-[1em] select-none">
             🜂 🜃 🜁
           </div>
@@ -2435,7 +2674,7 @@ export default function SubjectBinder() {
           const hasSeparator = rows[1].includes("-");
           const bodyRows = hasSeparator ? parsedRows.slice(2) : parsedRows.slice(1);
 
-          renderedElements.push(
+          currentGroup.elements.push(
             <div key={`table-wrapper-${blockKey}`} className="group flex items-start gap-2 w-full relative justify-between">
               <div 
                 className={`my-6 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900/50 flex-1 transition-all duration-300 ${
@@ -2470,7 +2709,6 @@ export default function SubjectBinder() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  isPlayingRef.current = true;
                   speakBlock(b);
                 }}
                 className="mt-8 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition cursor-pointer select-none shrink-0"
@@ -2485,16 +2723,15 @@ export default function SubjectBinder() {
       }
 
       // Check if block is entirely a list of items
-      const lines = block.split("\n");
       const isListBlock = lines.every(l => l.trim().startsWith("- ") || l.trim().startsWith("* ") || l.trim().startsWith("• "));
       
       if (isListBlock) {
-        renderedElements.push(
+        currentGroup.elements.push(
           <div key={`ul-wrapper-${blockKey}`} className="group flex items-start gap-2 w-full relative justify-between">
             <ul 
               className={`ml-6 list-disc space-y-2.5 my-5 flex-1 transition-all duration-300 ${
                 currentBlockIndex === b 
-                  ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 rounded p-2 -mx-2 shadow-sm animate-pulse" 
+                  ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 rounded p-2 -mx-2 shadow-sm" 
                   : ""
               }`} 
               style={textStyle}
@@ -2508,7 +2745,6 @@ export default function SubjectBinder() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                isPlayingRef.current = true;
                 speakBlock(b);
               }}
               className="mt-5 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition cursor-pointer select-none shrink-0"
@@ -2521,94 +2757,30 @@ export default function SubjectBinder() {
         continue;
       }
 
-      // Check if single line headers/special items
-      const firstLine = lines[0].trim();
-
-      // Subject Main Header
+      // Subject Main Header (Suppressed in favor of top Calligraphy Ink Wash Banner)
       if (firstLine.startsWith("# Subject:")) {
-        const subj = firstLine.replace("# Subject:", "").trim();
-        renderedElements.push(
-          <div key={`header-wrapper-${blockKey}`} className="group flex items-start justify-between gap-3 mb-10 pb-6 border-b-2 border-indigo-100 dark:border-indigo-950/40 w-full relative">
-            <div 
-              className={`flex-1 transition-all duration-300 ${
-                currentBlockIndex === b 
-                  ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 rounded p-2 shadow-sm" 
-                  : ""
-              }`}
-              style={textStyle}
-            >
-              <h1 className="font-bold tracking-tight text-slate-900 dark:text-white" style={{ fontSize: `${fontSize * 2.2}px`, lineHeight: 1.2 }}>{applyHighlights(subj, `subj-hl`)}</h1>
-              <p className="mt-2 text-indigo-600/70 dark:text-indigo-400/50 font-medium tracking-wide uppercase text-[10px]" style={{ fontFamily: 'system-ui, sans-serif' }}>Comprehensive Organized Study Notes</p>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                isPlayingRef.current = true;
-                speakBlock(b);
-              }}
-              className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition cursor-pointer select-none shrink-0"
-              title="Read heading block"
-            >
-              <Volume2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        );
-        continue;
-      }
-
-      // Topic Heading (H2)
-      if (firstLine.startsWith("## ")) {
-        const heading = firstLine.replace("## ", "").trim();
-        const displayHeading = heading.startsWith("Topic:") ? heading.replace("Topic:", "").trim() : heading;
-        renderedElements.push(
-          <div key={`h2-wrapper-${blockKey}`} className="group flex items-center justify-between gap-3 mt-12 mb-4 scroll-mt-6 w-full relative">
-            <h2
-              data-topic-id={encodeURIComponent(displayHeading)}
-              className={`font-bold border-l-4 border-indigo-500 pl-3.5 py-0.5 text-indigo-900 dark:text-indigo-200 transition-all duration-300 flex-1 ${
-                currentBlockIndex === b 
-                  ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 rounded px-2 shadow-sm animate-pulse" 
-                  : ""
-              }`}
-              style={{ ...textStyle, fontSize: `${fontSize * 1.5}px` }}
-            >
-              {applyHighlights(displayHeading, `h2-${blockKey}-hl`)}
-            </h2>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                isPlayingRef.current = true;
-                speakBlock(b);
-              }}
-              className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition cursor-pointer select-none shrink-0"
-              title="Read heading"
-            >
-              <Volume2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        );
         continue;
       }
 
       // Subheading (H3)
       if (firstLine.startsWith("### ")) {
         const h3Text = firstLine.replace("### ", "").trim();
-        renderedElements.push(
+        currentGroup.elements.push(
           <div key={`h3-wrapper-${blockKey}`} className="group flex items-center justify-between gap-3 mt-8 mb-3 w-full relative">
             <h3 
               data-topic-id={encodeURIComponent(h3Text)}
               className={`font-semibold text-slate-900 dark:text-slate-100 transition-all duration-300 flex-1 ${
                 currentBlockIndex === b 
-                  ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 rounded px-2 shadow-sm animate-pulse" 
+                  ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 rounded px-2 shadow-sm" 
                   : ""
               }`} 
-              style={{ ...textStyle, fontSize: `${fontSize * 1.25}px` }}
+              style={{ ...textStyle, fontSize: `${fontSize * 1.2}px` }}
             >
               {applyHighlights(h3Text, `h3-${blockKey}-hl`)}
             </h3>
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                isPlayingRef.current = true;
                 speakBlock(b);
               }}
               className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition cursor-pointer select-none shrink-0"
@@ -2621,59 +2793,27 @@ export default function SubjectBinder() {
         continue;
       }
 
-      // Sources citation (small italic link banner)
+      // Sources metadata tag (Suppressed in favor of top Calligraphy Ink Wash Banner)
       if (firstLine.startsWith("* **Sources**:")) {
-        const match = firstLine.match(/\* \*\*Sources\*\*:\s*(.*)/);
-        const sourcesText = match ? match[1].trim() : "";
-        renderedElements.push(
-          <div key={`src-wrapper-${blockKey}`} className="group flex items-center justify-between gap-3 w-full relative">
-            <div 
-              className={`flex items-center gap-2 mb-6 -mt-2 bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800/80 px-3 py-1.5 rounded-lg w-fit transition-all duration-300 ${
-                currentBlockIndex === b 
-                  ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20" 
-                  : ""
-              }`}
-            >
-              <BookMarked className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
-              <span className="font-medium text-slate-500 dark:text-slate-400" style={{ fontFamily: 'system-ui, sans-serif', fontSize: `${fontSize * 0.75}px` }}>
-                Source Material: <span className="italic font-normal">{sourcesText || "Manual Entry"}</span>
-              </span>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                isPlayingRef.current = true;
-                speakBlock(b);
-              }}
-              className="mb-6 -mt-2 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition cursor-pointer select-none shrink-0"
-              title="Read source citation"
-            >
-              <Volume2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        );
         continue;
       }
 
       // Blockquotes (styled study card callout)
       if (firstLine.startsWith("> ")) {
         const quoteContent = lines.map(l => l.replace(/^>\s?/, "").trim()).join("\n");
-        renderedElements.push(
+        currentGroup.elements.push(
           <div key={`quote-wrapper-${blockKey}`} className="group flex items-start gap-2 w-full relative justify-between">
-            <div 
+            <blockquote 
               className={`ml-2 mr-2 my-6 pl-5 border-l-4 border-amber-500 bg-amber-50/40 dark:bg-amber-950/10 py-3 pr-4 rounded-r-lg text-slate-800 dark:text-slate-200 leading-relaxed italic flex-1 transition-all duration-300 ${
-                currentBlockIndex === b 
-                  ? "ring-2 ring-amber-500/40 bg-amber-500/10 dark:bg-amber-950/20 shadow-sm animate-pulse" 
-                  : ""
+                currentBlockIndex === b ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 p-2 -mx-2 shadow-sm" : ""
               }`}
               style={{ ...textStyle, fontSize: `${fontSize * 0.95}px` }}
             >
               {applyHighlights(renderInlineFormatting(quoteContent, `q-${blockKey}`), `q-${blockKey}-hl`)}
-            </div>
+            </blockquote>
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                isPlayingRef.current = true;
                 speakBlock(b);
               }}
               className="mt-8 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition cursor-pointer select-none shrink-0"
@@ -2687,12 +2827,12 @@ export default function SubjectBinder() {
       }
 
       // Default: Paragraph
-      renderedElements.push(
+      currentGroup.elements.push(
         <div key={`p-wrapper-${blockKey}`} className="group flex items-start gap-2 w-full relative justify-between">
           <p 
             className={`my-4.5 leading-relaxed text-justify flex-1 transition-all duration-300 ${
               currentBlockIndex === b 
-                ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 rounded p-2 -mx-2 shadow-sm scale-[1.01] animate-pulse" 
+                ? "ring-2 ring-indigo-500/40 bg-indigo-50/20 dark:bg-indigo-950/20 rounded px-2 -mx-2 shadow-sm" 
                 : ""
             }`}
             style={{ ...textStyle, fontSize: `${fontSize}px` }}
@@ -2702,7 +2842,6 @@ export default function SubjectBinder() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              isPlayingRef.current = true;
               speakBlock(b);
             }}
             className="mt-5 p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition cursor-pointer select-none shrink-0"
@@ -2714,7 +2853,172 @@ export default function SubjectBinder() {
       );
     }
 
-    return renderedElements;
+    if (currentGroup.elements.length > 0 || currentGroup.title !== "Introduction") {
+      chapterGroups.push(currentGroup);
+    }
+
+    // --- Premium Visual Separator Renderer ---
+    const renderChapterSeparator = (title: string, index: number) => {
+      return (
+        <div 
+          key={`chapter-sep-${index}`}
+          className="relative my-16 py-8 px-6 text-center select-none animate-fade-in group w-full overflow-hidden border-y border-dashed border-[#c5a880]/30"
+          style={{
+            background: isDark
+              ? "linear-gradient(90deg, transparent 0%, rgba(37, 31, 24, 0.45) 20%, rgba(37, 31, 24, 0.45) 80%, transparent 100%)"
+              : "linear-gradient(90deg, transparent 0%, rgba(253, 247, 238, 0.7) 20%, rgba(253, 247, 238, 0.7) 80%, transparent 100%)",
+          }}
+        >
+          {/* Decorative Gold & Mandala Floral Divider Line */}
+          <div className="flex items-center justify-center gap-3 w-full opacity-70 mb-3.5 select-none">
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-[#d4af37]/60" />
+            <span className="text-[#d4af37] text-base animate-pulse shrink-0">🪷</span>
+            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-[#d4af37]/60" />
+          </div>
+
+          {/* Saffron & Crimson Indian Silk Marigold Badge */}
+          <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-gradient-to-r from-[#d97706] to-[#b91c1c] text-white shadow-md shadow-[#d97706]/10 select-none">
+            <span>VOLUME {index + 1}</span>
+          </div>
+          
+          {/* Chapter Title */}
+          <h2
+            data-topic-id={encodeURIComponent(title)}
+            className="text-xl md:text-2xl font-extrabold tracking-wide text-slate-800 dark:text-stone-100 leading-tight mt-2.5 mx-auto max-w-lg"
+            style={{ 
+              fontFamily: '"EB Garamond", Georgia, serif',
+              textShadow: isDark ? '0 1px 4px rgba(0,0,0,0.4)' : 'none'
+            }}
+          >
+            {applyHighlights(title, `h2-ch-${index}`)}
+          </h2>
+        </div>
+      );
+    };
+
+    // --- Chapter Filter Rendering ---
+    const finalElements: React.JSX.Element[] = [];
+
+    if (activeChapterFilter === "All") {
+      chapterGroups.forEach((group, index) => {
+        // Only render the separator for index > 0 because the Calligraphy Hero Banner
+        // at the very top serves as the heading for the first chapter on the page!
+        if (group.title !== "Introduction" && index > 0) {
+          finalElements.push(renderChapterSeparator(group.title, index));
+        }
+        finalElements.push(...group.elements);
+      });
+    } else {
+      const matchedIdx = chapterGroups.findIndex(g => g.title === activeChapterFilter);
+      if (matchedIdx !== -1) {
+        const group = chapterGroups[matchedIdx];
+        // We never render the separator in a single chapter filter view, since the
+        // Calligraphy Hero Banner at the top already acts as the definitive title!
+        finalElements.push(...group.elements);
+      }
+    }
+
+    return finalElements;
+  };
+
+  // --- Calligraphy Ink Wash Japanese-inspired Hero Banner ---
+  const renderCalligraphyHeroBanner = () => {
+    const subjectDisplayName = formatDisplayName(subject);
+    const activeChapterName = activeChapterFilter === "All" 
+      ? "All Restructured Notes" 
+      : activeChapterFilter;
+
+    // Retrieve active chapter sources if available
+    let activeSources: string[] = [];
+    if (activeChapterFilter !== "All") {
+      const matched = parsedTOC.find(t => t.name === activeChapterFilter);
+      if (matched && matched.sources) {
+        activeSources = matched.sources;
+      }
+    } else {
+      activeSources = Array.from(new Set(parsedTOC.flatMap(t => t.sources || [])));
+    }
+
+    return (
+      <div 
+        className="w-full relative overflow-hidden shrink-0 border-b border-[#c5a880]/30 select-none animate-fade-in"
+        style={{
+          background: isDark
+            ? "linear-gradient(135deg, #0d0c0e 0%, #151316 40%, #1d1b22 100%)"
+            : "linear-gradient(135deg, #f7f5f0 0%, #f0ede4 45%, #e6e0d2 100%)",
+        }}
+      >
+        {/* Sumi-e Abstract Ink wash brush texture/opacity overlay */}
+        <div 
+          className="absolute inset-0 bg-black/[0.04] dark:bg-black/[0.42] pointer-events-none"
+          style={{
+            backgroundImage: "radial-gradient(circle at 10% 20%, rgba(0,0,0,0.02) 0%, transparent 80%)",
+          }}
+        />
+        
+        {/* Subtle Calligraphy Gold / Sumi Splatter Accent Blurs */}
+        <div className="absolute top-[-50px] right-[-30px] w-[180px] h-[180px] rounded-full blur-[60px] opacity-15 dark:opacity-20 pointer-events-none bg-[#c5a880]" />
+        
+        {/* Washi Paper texture effect */}
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] mix-blend-overlay pointer-events-none" 
+             style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.15\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }} />
+
+        {/* Scroll binding red/gold left border accent (traditional scroll layout) */}
+        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#c5a880]/60 dark:bg-[#c5a880]/40" />
+
+        {/* Elegant Content Spacing */}
+        <div className="pl-12 pr-16 py-9 flex flex-col justify-center min-h-[145px] relative z-10 animate-fade-in">
+          
+          {/* Breadcrumb Navigation Path */}
+          <div className="flex items-center gap-1.5 text-[9.5px] font-extrabold uppercase tracking-widest text-[#c5a880] dark:text-[#c5a880]/80 font-mono mb-2">
+            <span>Library</span>
+            <span className="opacity-50 font-serif">/</span>
+            <span>{subjectDisplayName}</span>
+            {activeChapterFilter !== "All" && (
+              <>
+                <span className="opacity-50 font-serif">/</span>
+                <span className="text-[#a8906c] dark:text-[#c5a880]/90 font-sans tracking-wide">Chaptered notes</span>
+              </>
+            )}
+          </div>
+
+          {/* Calligraphy Active Chapter Heading */}
+          <h2 
+            className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-800 dark:text-stone-100 flex items-baseline gap-2 mb-2"
+            style={{ 
+              fontFamily: '"EB Garamond", Georgia, serif',
+              letterSpacing: '-0.01em',
+              textShadow: isDark ? '0 2px 10px rgba(0,0,0,0.5)' : 'none'
+            }}
+          >
+            {activeChapterName}
+          </h2>
+
+          {/* Sources and Meta Information */}
+          {activeSources.length > 0 && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 font-sans tracking-wide">
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#c5a880]/60 animate-pulse" />
+                Sources: {activeSources.join(", ")}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Hanko Red Ink Seal Stamp (étude/study sign of verification) */}
+        <div 
+          className="absolute right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-12 h-12 rounded-full border-2 border-dashed border-red-500/70 dark:border-red-500/50 bg-red-500/[0.04] text-red-500 text-base font-serif font-extrabold select-none rotate-12 scale-95 shadow-inner z-10"
+          style={{ 
+            fontFamily: 'Georgia, serif',
+            textShadow: '0 0 2px rgba(239, 68, 68, 0.1)',
+            boxShadow: 'inset 0 0 4px rgba(239, 68, 68, 0.1)'
+          }}
+          title="Calligraphy Seal of Study"
+        >
+          書
+        </div>
+      </div>
+    );
   };
 
   // Preview panel content (used in both normal and focus mode)
@@ -2725,7 +3029,7 @@ export default function SubjectBinder() {
       <div
         ref={previewContainerRef}
         onMouseUp={handleTextSelection}
-        className="w-full shadow-2xl rounded-2xl mx-auto border border-slate-200/50 dark:border-slate-800/40 transition-all duration-300 relative overflow-hidden"
+        className="w-full shadow-2xl rounded-2xl mx-auto border border-slate-200/50 dark:border-slate-800/40 transition-all duration-300 relative overflow-hidden flex flex-col"
         style={{
           maxWidth: `${pageWidth}px`,
           backgroundColor: "var(--app-card)",
@@ -2736,7 +3040,11 @@ export default function SubjectBinder() {
           fontFamily: selectedFontFamily,
         }}
       >
-        <div className="px-10 py-14 sm:px-16 sm:py-18 h-full flex flex-col">
+        {/* Full-width Calligraphy Ink Wash Hero Banner */}
+        {renderCalligraphyHeroBanner()}
+
+        <div className="px-10 py-10 sm:px-16 sm:py-12 flex-1 flex flex-col">
+
         {/* Content */}
         <div className="flex-1 flex flex-col max-w-none break-words">
           {markdown.trim() ? (
@@ -2765,13 +3073,13 @@ export default function SubjectBinder() {
   return (
     <>
       {/* ── Normal Layout ── */}
-      <div className="flex min-h-screen bg-slate-50 dark:bg-[#0b0f19]">
+      <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#0b0f19]">
         <Sidebar />
 
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Navbar />
           
-          <main className="flex-1 overflow-hidden flex flex-col h-screen relative">
+          <main className="flex-1 overflow-hidden flex flex-col relative">
           
           {/* ── Header Toolbar ── */}
           <header className="px-5 py-3 bg-white dark:bg-[#111726] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 z-10">
@@ -2783,7 +3091,7 @@ export default function SubjectBinder() {
                 <ArrowLeft className="h-4 w-4" />
               </a>
               <div>
-                <h1 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">{subject}</h1>
+                <h1 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">{formatDisplayName(subject)}</h1>
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">Study notes &amp; chapters</p>
               </div>
             </div>
@@ -2813,34 +3121,170 @@ export default function SubjectBinder() {
                 ))}
               </div>
 
-              {/* Font Size & Focus Controls (Only visible when preview/split/visual/mindmap is active) */}
+              {/* Reader Preferences Popover Menu Button (Obsidian/Notion Style) */}
               {(activeTab === "preview" || activeTab === "split" || activeTab === "visual" || activeTab === "mindmap") && (
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-0.5 rounded-lg mr-2">
+                <div className="relative">
                   <button 
-                    onClick={() => setFontSize(Math.max(12, fontSize - 2))}
-                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded transition"
-                    title="Decrease font size"
+                    onClick={() => setShowReaderPrefs(!showReaderPrefs)}
+                    className={`p-2 rounded-xl border transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer ${
+                      showReaderPrefs
+                        ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400"
+                        : "border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-900"
+                    }`}
+                    title="Reader Preferences"
                   >
-                    <ZoomOut className="h-3.5 w-3.5" />
+                    <Sliders className="h-4 w-4" />
+                    <span>Reader Prefs</span>
                   </button>
-                  <span className="text-xs font-mono w-6 text-center text-slate-600 dark:text-slate-300 select-none">{fontSize}</span>
-                  <button 
-                    onClick={() => setFontSize(Math.min(32, fontSize + 2))}
-                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white rounded transition"
-                    title="Increase font size"
-                  >
-                    <ZoomIn className="h-3.5 w-3.5" />
-                  </button>
-                  <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1" />
-                  <button 
-                    onClick={() => setFocusMode(true)}
-                    className="p-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 rounded transition flex items-center gap-1"
-                    title="Focus Mode"
-                  >
-                    <Maximize className="h-3.5 w-3.5" />
-                  </button>
+
+                  {showReaderPrefs && (
+                    <>
+                      {/* Click-outside backdrop */}
+                      <div className="fixed inset-0 z-40" onClick={() => setShowReaderPrefs(false)} />
+                      
+                      <div className="absolute right-0 top-full mt-2 w-80 p-4 bg-white/95 dark:bg-[#111726]/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 animate-fade-in space-y-4 text-slate-800 dark:text-slate-200">
+                        {/* Section 1: Typography */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <Sliders className="h-3.5 w-3.5 text-indigo-500" /> Typography Settings
+                          </h4>
+                          
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold text-slate-500 block">Font Family</label>
+                            <CustomDropdown
+                              options={[
+                                { value: "garamond", label: "EB Garamond", icon: "📜", description: "Warm book serif" },
+                                { value: "caveat", label: "Cozy Cursive", icon: "✍️", description: "Soft journal script" },
+                                { value: "architect", label: "Architect Hand", icon: "📐", description: "Technical hand-lettering" },
+                                { value: "cinzel", label: "Classical Roman", icon: "🏛️", description: "Roman display serif" },
+                                { value: "georgia", label: "Georgia Book", icon: "📚", description: "Standard book serif" },
+                                { value: "sans", label: "Modern Sans", icon: "🌐", description: "High legibility screen" },
+                              ]}
+                              value={activeFont}
+                              onChange={setActiveFont}
+                              placeholder="Select Font"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 pt-1">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold text-slate-500 block">Font Size</label>
+                              <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-950 p-1 rounded-lg border border-slate-200/50 dark:border-slate-800/60 justify-between">
+                                <button 
+                                  onClick={() => setFontSize(Math.max(12, fontSize - 2))}
+                                  className="p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition font-bold"
+                                >
+                                  A-
+                                </button>
+                                <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">{fontSize}px</span>
+                                <button 
+                                  onClick={() => setFontSize(Math.min(32, fontSize + 2))}
+                                  className="p-1 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 rounded transition font-bold"
+                                >
+                                  A+
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold text-slate-500 block">Focus View</label>
+                              <button 
+                                onClick={() => {
+                                  setFocusMode(true);
+                                  setShowReaderPrefs(false);
+                                }}
+                                className="w-full py-1.5 px-3 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900 rounded-lg text-xs font-semibold hover:bg-indigo-100 transition flex items-center justify-center gap-1 cursor-pointer"
+                              >
+                                <Maximize className="h-3.5 w-3.5" /> Fullscreen
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Column Width Presets */}
+                          <div className="space-y-1.5 pt-1">
+                            <label className="text-[10px] font-bold text-slate-500 block">Column Width</label>
+                            <div className="grid grid-cols-3 gap-1 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800/60">
+                              {([
+                                { value: 720, label: "Compact" },
+                                { value: 860, label: "Normal" },
+                                { value: 1080, label: "Wide" }
+                              ]).map((opt) => (
+                                <button
+                                  key={opt.value}
+                                  onClick={() => setPageWidth(opt.value)}
+                                  className={`py-1 text-[10px] font-bold rounded-lg transition-all cursor-pointer ${
+                                    pageWidth === opt.value
+                                      ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/50 dark:border-slate-700"
+                                      : "text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-900"
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <hr className="border-slate-200 dark:border-slate-850" />
+
+                        {/* Section 2: Audio/TTS */}
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <Volume2 className="h-3.5 w-3.5 text-indigo-500" /> Speech &amp; TTS Settings
+                          </h4>
+
+                          {voices.length > 0 && (
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-bold text-slate-500 block">TTS Voice</label>
+                              <CustomDropdown
+                                options={voices.map(v => ({
+                                  value: v.voiceURI,
+                                  label: v.name.replace(/Microsoft|Google|Apple/g, "").trim(),
+                                  icon: "🗣️",
+                                  description: v.lang
+                                }))}
+                                value={selectedVoice}
+                                onChange={handleVoiceChange}
+                                placeholder="Select Speech Voice"
+                              />
+                            </div>
+                          )}
+
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
+                              <span>Reading Speed</span>
+                              <span className="font-mono text-indigo-500">{speechRate}x</span>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="0.5" 
+                              max="2.0" 
+                              step="0.1" 
+                              value={speechRate} 
+                              onChange={(e) => handleRateChange(parseFloat(e.target.value))} 
+                              className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
+
+              {/* AI Assistant Sidebar Toggle Button */}
+              <button 
+                onClick={() => setAiPanelCollapsed(!aiPanelCollapsed)}
+                className={`p-2 rounded-xl border transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer ${
+                  !aiPanelCollapsed
+                    ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400"
+                    : "border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-900"
+                }`}
+                title="AI Assistant Panel"
+              >
+                <Sparkles className="h-4 w-4 text-indigo-500" />
+                <span>AI Assistant</span>
+              </button>
 
               <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
 
@@ -2884,13 +3328,52 @@ export default function SubjectBinder() {
             </div>
           )}
           {errorMessage && (
-            <div className="bg-rose-500 text-white px-6 py-2 flex items-center gap-2 justify-center font-medium text-xs shrink-0">
-              <AlertCircle className="h-4 w-4" /> {errorMessage}
-            </div>
+            (() => {
+              const parsed = parseAIErrors(errorMessage);
+              return (
+                <div className="bg-rose-500/90 dark:bg-rose-950/90 backdrop-blur text-white px-6 py-2.5 flex flex-col md:flex-row items-center gap-3 justify-between font-medium text-xs shrink-0 border-b border-rose-600/30 shadow-md transition-all duration-300 animate-slide-in relative z-50">
+                  <div className="flex items-start gap-2 flex-1 w-full">
+                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0 text-rose-200" />
+                    <div className="flex-1">
+                      <span className="font-semibold text-rose-100">Error: </span>
+                      <span>{parsed.mainMessage}</span>
+                      {parsed.details && (
+                        <details className="mt-1 text-[10px] text-rose-200 bg-black/20 p-2 rounded cursor-pointer select-text">
+                          <summary className="font-semibold hover:text-white transition-colors">Show developer details</summary>
+                          <pre className="mt-1 font-mono overflow-auto max-h-40">{parsed.details}</pre>
+                        </details>
+                      )}
+                    </div>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setErrorMessage("")}
+                    className="text-rose-200 hover:text-white font-bold px-2 py-1 rounded hover:bg-white/10 transition cursor-pointer self-start md:self-center"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              );
+            })()
           )}
 
           {/* ── Main Workspace ── */}
           <div className="flex-1 flex overflow-hidden w-full relative">
+
+            {/* Floating Expand TOC Pill */}
+            {tocCollapsed && (
+              <button
+                type="button"
+                onClick={() => setTocCollapsed(false)}
+                className="absolute top-4 left-4 z-30 p-2.5 rounded-xl bg-white/80 dark:bg-[#111726]/85 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/40 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-500/30 shadow-lg hover:shadow-indigo-500/10 transition-all duration-300 group cursor-pointer flex items-center justify-center animate-fade-in hover:scale-105"
+                title="Open Table of Contents"
+              >
+                <List className="h-4 w-4 transition-transform duration-300 group-hover:rotate-6" />
+                <span className="w-0 overflow-hidden group-hover:w-20 group-hover:ml-1.5 text-[10px] font-extrabold uppercase tracking-wider transition-all duration-300 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 block whitespace-nowrap">
+                  Contents
+                </span>
+              </button>
+            )}
 
             {/* ── TOC Sidebar ── */}
             <aside
@@ -2899,10 +3382,21 @@ export default function SubjectBinder() {
               }`}
             >
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
-                <span className="text-[11px] font-semibold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5">
+                <span className="text-[11px] font-semibold uppercase text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1.5 font-sans">
                   <List className="h-3.5 w-3.5 text-indigo-500" /> Contents
                 </span>
-                <span className="text-[10px] font-medium text-slate-300 dark:border-slate-600">{topics.length} chapters</span>
+                <div className="flex items-center gap-2 select-none">
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-500/10 text-indigo-500 rounded-md border border-indigo-500/10">
+                    {parsedTOC.length} CH
+                  </span>
+                  <button
+                    onClick={() => setTocCollapsed(true)}
+                    className="p-1 rounded-lg hover:bg-slate-150 dark:hover:bg-slate-800 text-slate-400 hover:text-rose-500 transition cursor-pointer flex items-center justify-center"
+                    title="Close Table of Contents"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* Sidebar Tabs */}
@@ -2936,12 +3430,12 @@ export default function SubjectBinder() {
               <div className="flex-1 overflow-y-auto p-2 space-y-2 select-text">
                 {sidebarTab === "chapters" ? (
                   // --- Chapters TOC ---
-                  topics.length === 0 ? (
+                  parsedTOC.length === 0 ? (
                     <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500 italic leading-relaxed select-none">
                       No chapters found. Add a topic section to get started.
                     </div>
                   ) : (
-                    topics.map((t, idx) => {
+                    parsedTOC.map((t, idx) => {
                       const isEditing = editingTopicName === t.name;
                       return (
                         <div key={idx} className="w-full flex flex-col select-none group border-b border-slate-100/50 dark:border-slate-800/20 pb-2">
@@ -2974,7 +3468,7 @@ export default function SubjectBinder() {
                                   <span className="block truncate leading-snug font-bold hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{t.name}</span>
                                   {t.sources.length > 0 && (
                                     <span className="text-[9px] font-medium text-slate-400 dark:text-slate-500 block truncate mt-0.5 uppercase tracking-wider">
-                                      📂 {t.sources.join(", ")}
+                                      📂 {t.sources.map(formatDisplayName).join(", ")}
                                     </span>
                                   )}
                                 </div>
@@ -3099,21 +3593,50 @@ export default function SubjectBinder() {
               </div>
             </aside>
 
-            {/* TOC Toggle */}
-            <button
-              onClick={() => setTocCollapsed(!tocCollapsed)}
-              className="absolute bottom-6 bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-indigo-500 p-1 rounded-r-lg transition z-20 shadow-sm cursor-pointer flex items-center justify-center h-8 w-6"
-              style={{ left: tocCollapsed ? "0px" : "239px" }}
-            >
-              {tocCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5 transform -rotate-90" />}
-            </button>
+
 
             {/* ── Content Area ── */}
             <div className="flex-1 bg-[#ebeaeb] dark:bg-[#080b14] p-4 overflow-hidden flex flex-col">
               {loading ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-3">
-                  <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-                  <span className="text-xs text-slate-400 dark:text-slate-500">Loading notes...</span>
+                <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8">
+                  <Loader2 className={`h-8 w-8 animate-spin ${processing ? "text-amber-500" : "text-indigo-500"}`} />
+                  <span className="text-xs text-slate-400 dark:text-slate-500 text-center">
+                    {processing ? "Processing your uploads — this may take a minute..." : "Loading notes..."}
+                  </span>
+                  {processing && (
+                    <div className="w-full max-w-md space-y-3">
+                      <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500 ease-out"
+                          style={{
+                            width: `${Math.max(taskProgress, 2)}%`,
+                            background:
+                              "linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7)",
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="text-slate-500 dark:text-slate-400 font-medium">
+                          {taskNode
+                            ? ({
+                                save_raw_clean: "Cleaning text",
+                                analyze_structure: "Analyzing structure",
+                                semantic_split: "Splitting content",
+                                generate_toc: "Building TOC",
+                                semantic_tag: "Tagging topics",
+                                assemble_chapters: "Assembling chapters",
+                                format_chapters: "Formatting notes",
+                                save_to_chroma: "Embedding into vector DB",
+                                compile_wiki_pages: "Compiling wiki",
+                              } as Record<string, string>)[taskNode] || taskNode
+                            : "Preparing..."}
+                        </span>
+                        <span className="text-slate-400 dark:text-slate-500 font-bold">
+                          {taskProgress}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="w-full h-full flex gap-4 overflow-hidden justify-center">
@@ -3128,19 +3651,21 @@ export default function SubjectBinder() {
                         </div>
                       ) : mindmapData ? (
                           <div className="w-full h-full bg-slate-900 rounded-xl overflow-hidden">
-                            <ReactFlowGraph
-                              nodes={mindmapData.nodes.map((n: any) => ({
-                                id: n.id,
-                                label: n.label,
-                                subject: subject
-                              }))}
-                              edges={mindmapData.links.map((e: any) => ({
-                                id: `${e.source.id || e.source}-${e.target.id || e.target}`,
-                                source: e.source.id || e.source,
-                                target: e.target.id || e.target,
-                                label: e.label
-                              }))}
-                            />
+                            <GraphErrorBoundary>
+                              <ReactFlowGraph
+                                nodes={mindmapData.nodes.map((n: any) => ({
+                                  id: n.id,
+                                  label: n.label,
+                                  subject: subject
+                                }))}
+                                edges={mindmapData.links.map((e: any) => ({
+                                  id: `${e.source.id || e.source}-${e.target.id || e.target}`,
+                                  source: e.source.id || e.source,
+                                  target: e.target.id || e.target,
+                                  label: e.label
+                                }))}
+                              />
+                            </GraphErrorBoundary>
                           </div>
                       ) : (
                         <div className="text-center text-slate-400 p-8 max-w-md">
@@ -3165,9 +3690,7 @@ export default function SubjectBinder() {
                         <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                           <Edit3 className="h-3 w-3 text-indigo-500" /> Markdown
                         </span>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{markdown.split("\n").length} lines</span>
                       </div>
-
                       <textarea
                         ref={textareaRef}
                         value={markdown}
@@ -3180,192 +3703,237 @@ export default function SubjectBinder() {
 
                   {/* ── Preview Panel ── */}
                   {(activeTab === "preview" || activeTab === "split") && (
-                    <div className={`overflow-y-auto h-full px-2 sm:px-8 py-8 ${activeTab === 'preview' ? 'w-full' : 'flex-1'} flex flex-col`}>
-                      {renderTTSPlayer()}
-                      <div className="flex-1 mt-4">
-                        <div id="print-notes-area-wrapper" className="w-full">
-                          <div id="print-notes-area">
-                            {renderDocumentPreview()}
+                    <div className={`h-full ${activeTab === 'preview' ? 'w-full' : 'flex-1'} flex flex-col overflow-hidden relative`}>
+                      {/* Breadcrumbs Active Chapter Filter (Static, space-saving) */}
+                      {markdown.trim() && topics.length > 0 && (
+                        <div className="w-full px-8 py-3 bg-slate-50/50 dark:bg-slate-900/10 border-b border-slate-200/50 dark:border-slate-800/30 flex items-center justify-between text-xs font-medium text-slate-500 shrink-0 select-none">
+                          <div className="flex items-center gap-1.5">
+                            <span>Library</span>
+                            <span className="text-slate-300">/</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-350">{formatDisplayName(subject)}</span>
+                            <span className="text-slate-300">/</span>
+                            <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-semibold">
+                              {activeChapterFilter === "All" ? "📚 All Chapters" : `📖 ${activeChapterFilter}`}
+                            </span>
                           </div>
+                          {activeChapterFilter !== "All" && (
+                            <button onClick={() => { setActiveChapterFilter("All"); setSelectedChapterName(topics[0]?.name || ""); }} className="p-1 text-slate-400 hover:text-rose-500 transition cursor-pointer">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  )}
+                      )}
 
-                  {/* ── Visual Editor Panel ── */}
-                  {activeTab === "visual" && (
-                    <div className="overflow-y-auto h-full px-2 sm:px-8 py-8 w-full flex flex-col">
-                      {renderTTSPlayer()}
-                      <div className="flex-1 mt-4">
-                        {renderVisualEditor()}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── AI Restructure Side Drawer ── */}
-                  {isRestructuring && (
-                    <div className="w-96 bg-white dark:bg-[#111726] border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col h-full rounded-xl shrink-0 z-10 overflow-hidden animate-slide-in-right">
-                      {/* Drawer Header */}
-                      <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 select-none">
-                        <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
-                          🪄 AI Note Restructurer
-                        </span>
-                        <button 
-                          onClick={() => setIsRestructuring(false)}
-                          className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-
-                      {/* Drawer Content */}
-                      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {/* Original Selection */}
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Original Selection</label>
-                          <div className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-xs leading-relaxed text-slate-650 dark:text-slate-400 italic max-h-36 overflow-y-auto font-sans">
-                            "{selectedText}"
-                          </div>
-                        </div>
-
-                        {/* Formatting Controls */}
-                        <div className="space-y-3 p-3 bg-indigo-50/50 dark:bg-indigo-950/10 border border-indigo-100/50 dark:border-indigo-950/30 rounded-lg">
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Visual Format</label>
-                            <select
-                              value={restructureStyle}
-                              onChange={(e) => setRestructureStyle(e.target.value)}
-                              className="w-full text-xs p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-200 cursor-pointer"
-                            >
-                              <option value="bullets">📋 High-Yield Bullet List</option>
-                              <option value="table">📊 Factual Comparison Table</option>
-                              <option value="timeline">⏱️ Chronological Flow / Timeline</option>
-                              <option value="mnemonics">⚡ Revision Mnemonics & Key Facts</option>
-                            </select>
-                          </div>
-
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Custom Instructions</label>
-                            <input
-                              type="text"
-                              value={restructureCustom}
-                              onChange={(e) => setRestructureCustom(e.target.value)}
-                              placeholder="e.g., make it sound conversational..."
-                              className="w-full text-xs p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                            />
-                          </div>
-
-                          <button
-                            onClick={handleRestructureQuery}
-                            disabled={generatingRestructure}
-                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-350 dark:disabled:bg-slate-800 text-white text-xs font-bold rounded-lg shrink-0 transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed"
-                          >
-                            {generatingRestructure ? (
-                              <>
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Restructuring...
-                              </>
-                            ) : (
-                              <>
-                                🪄 Generate Restructured Note
-                              </>
-                            )}
-                          </button>
-                        </div>
-
-                        {/* Restructured Preview Card */}
-                        {(generatingRestructure || restructuredText) && (
-                          <div className="space-y-1.5 flex-1 flex flex-col min-h-[220px]">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Restructured AI Output</label>
-                            <div className="flex-1 p-3 bg-white dark:bg-[#0c101b] border border-slate-200 dark:border-slate-850 rounded-lg text-xs leading-relaxed text-slate-700 dark:text-slate-300 overflow-y-auto max-h-80 select-text font-mono border-indigo-500/20 shadow-inner">
-                              {generatingRestructure ? (
-                                <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-400">
-                                  <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
-                                  <span className="text-[10px] font-sans">AI is restructuring note elements...</span>
-                                </div>
-                              ) : (
-                                <div className="space-y-3 font-sans">
-                                  {restructuredText.split("\n\n").map((p, idx) => {
-                                    if (p.startsWith("|")) {
-                                      // Render preview table
-                                      return (
-                                        <div key={idx} className="overflow-x-auto my-2 border border-slate-100 dark:border-slate-800/80 rounded-md">
-                                          <table className="w-full text-left text-[10px] leading-tight">
-                                            <tbody>
-                                              {p.split("\n").map((row, rIdx) => (
-                                                <tr key={rIdx} className="border-b border-slate-100 dark:border-slate-850 hover:bg-slate-50/50 dark:hover:bg-slate-900/10">
-                                                  {row.split("|").slice(1, -1).map((cell, cIdx) => (
-                                                    <td key={cIdx} className="p-1.5 font-sans font-medium">{cell.trim()}</td>
-                                                  ))}
-                                                </tr>
-                                              ))}
-                                            </tbody>
-                                          </table>
-                                        </div>
-                                      );
-                                    }
-                                    if (p.startsWith("#") || p.startsWith("##") || p.startsWith("###")) {
-                                      return <h4 key={idx} className="font-bold text-indigo-500 mt-2 text-xs">{p.replace(/#/g, "")}</h4>;
-                                    }
-                                    if (p.startsWith("-") || p.startsWith("*")) {
-                                      return (
-                                        <ul key={idx} className="list-disc pl-4 space-y-0.5 font-sans text-xs">
-                                          {p.split("\n").map((item, iIdx) => (
-                                            <li key={iIdx}>{item.replace(/^[-*]\s+/, "")}</li>
-                                          ))}
-                                        </ul>
-                                      );
-                                    }
-                                    return <p key={idx} className="font-sans leading-relaxed text-justify">{p}</p>;
-                                  })}
-                                </div>
-                              )}
+                      {/* Scrollable Document Paper */}
+                      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 w-full flex flex-col items-center">
+                        <div className="w-full flex-1">
+                          <div id="print-notes-area-wrapper" className="w-full">
+                            <div id="print-notes-area">
+                              {renderDocumentPreview()}
                             </div>
                           </div>
-                        )}
+                        </div>
                       </div>
 
-                      {/* Drawer Footer Actions */}
-                      {restructuredText && !generatingRestructure && (
-                        <div className="p-3 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-800 flex gap-2 shrink-0 select-none">
-                          <button
-                            onClick={() => {
-                              setRestructuredText("");
-                              setIsRestructuring(false);
-                            }}
-                            className="flex-1 py-1.5 border border-slate-200 dark:border-slate-700 text-slate-650 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold rounded-lg cursor-pointer transition text-center"
-                          >
-                            Discard
-                          </button>
-                          <button
-                            onClick={handleApplyRestructure}
-                            className="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg cursor-pointer transition shadow-md flex items-center justify-center gap-1.5 text-center"
-                          >
-                            Accept &amp; Replace
-                          </button>
+                      {/* Floating Sleeping Glassmorphic Overlay */}
+                      {isCleaningChapter && (
+                        <div className="absolute inset-0 bg-[#ebeaeb]/60 dark:bg-[#080b14]/75 backdrop-blur-[3px] z-25 flex flex-col items-center justify-center select-none cursor-wait animate-fade-in">
+                          {/* Breathing Sleep Light */}
+                          <div className="relative flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 blur-md opacity-70 animate-pulse" style={{ animationDuration: '3s' }} />
+                            <div className="absolute w-8 h-8 rounded-full bg-indigo-600/20 border border-indigo-500/50 flex items-center justify-center animate-ping" style={{ animationDuration: '2s' }} />
+                          </div>
+                          <span className="text-[10px] font-extrabold tracking-widest text-indigo-600 dark:text-indigo-400 mt-5 uppercase animate-pulse">
+                            AI is refining chapter...
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+ 
+                  {/* ── Visual Editor Panel ── */}
+                  {activeTab === "visual" && (
+                    <div className="h-full w-full flex flex-col overflow-hidden relative">
+                      {/* Breadcrumbs Active Chapter Filter (Static, space-saving) */}
+                      {markdown.trim() && topics.length > 0 && (
+                        <div className="w-full px-8 py-3 bg-slate-50/50 dark:bg-slate-900/10 border-b border-slate-200/50 dark:border-slate-800/30 flex items-center justify-between text-xs font-medium text-slate-500 shrink-0 select-none">
+                          <div className="flex items-center gap-1.5">
+                            <span>Library</span>
+                            <span className="text-slate-300">/</span>
+                            <span className="font-bold text-slate-700 dark:text-slate-350">{formatDisplayName(subject)}</span>
+                            <span className="text-slate-300">/</span>
+                            <span className="px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-semibold">
+                              {activeChapterFilter === "All" ? "📚 All Chapters" : `📖 ${activeChapterFilter}`}
+                            </span>
+                          </div>
+                          {activeChapterFilter !== "All" && (
+                            <button onClick={() => { setActiveChapterFilter("All"); setSelectedChapterName(topics[0]?.name || ""); }} className="p-1 text-slate-400 hover:text-rose-500 transition cursor-pointer">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Scrollable Visual Editor content */}
+                      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 w-full flex flex-col items-center">
+                        <div className="w-full flex-1">
+                          {renderVisualEditor()}
+                        </div>
+                      </div>
+
+                      {/* Floating Sleeping Glassmorphic Overlay */}
+                      {isCleaningChapter && (
+                        <div className="absolute inset-0 bg-[#ebeaeb]/60 dark:bg-[#080b14]/75 backdrop-blur-[3px] z-25 flex flex-col items-center justify-center select-none cursor-wait animate-fade-in">
+                          {/* Breathing Sleep Light */}
+                          <div className="relative flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400 blur-md opacity-70 animate-pulse" style={{ animationDuration: '3s' }} />
+                            <div className="absolute w-8 h-8 rounded-full bg-indigo-600/20 border border-indigo-500/50 flex items-center justify-center animate-ping" style={{ animationDuration: '2s' }} />
+                          </div>
+                          <span className="text-[10px] font-extrabold tracking-widest text-indigo-600 dark:text-indigo-400 mt-5 uppercase animate-pulse">
+                            AI is refining chapter...
+                          </span>
                         </div>
                       )}
                     </div>
                   )}
 
+                  {/* AI Restructure Side Drawer removed in favor of focused full-screen overlay modal */}
+
                 </div>
               )}
             </div>
+            
+            {/* ── Collapsible Right-Side AI Assistant Panel ── */}
+            <aside className={`bg-white dark:bg-[#111726] border-l border-slate-200 dark:border-slate-800 flex flex-col transition-all duration-300 shrink-0 select-none relative z-10 ${aiPanelCollapsed ? "w-0 overflow-hidden opacity-0 border-l-0" : "w-72 opacity-100"}`}>
+              {/* AI Assistant Header */}
+              <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-[#111726]/50">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10">
+                    <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <h3 className="text-[13px] font-bold text-slate-800 dark:text-slate-200">AI Assistant</h3>
+                </div>
+                <button onClick={() => setAiPanelCollapsed(true)} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Scrollable Modules */}
+              <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-6 w-72">
+                
+                {/* Module: Chapter Cleaner */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <Wand2 className="h-3.5 w-3.5 text-indigo-500" />
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Chapter Cleaner</h4>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Select a chapter and an output style. AI will intelligently format the content while preserving zero factual loss.
+                  </p>
+                  
+                  <div className="flex flex-col gap-2">
+                    <select
+                      value={selectedChapterName || ""}
+                      onChange={(e) => {
+                        setSelectedChapterName(e.target.value);
+                        setActiveChapterFilter(e.target.value);
+                      }}
+                      className="w-full text-xs p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="" disabled>Select chapter...</option>
+                      {topics.map(t => (
+                        <option key={t.name} value={t.name}>{t.name}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={cleanStyle}
+                      onChange={(e) => setCleanStyle(e.target.value as any)}
+                      className="w-full text-xs p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    >
+                      <option value="bullets">Bullets & Highlighting</option>
+                      <option value="summary">Executive Summary</option>
+                      <option value="table">Comparison Table</option>
+                      <option value="timeline">Chronological Timeline</option>
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedChapterName) handleCleanChapter(selectedChapterName);
+                      }}
+                      disabled={isCleaningChapter || !selectedChapterName}
+                      className="mt-1 w-full px-3 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 disabled:from-slate-200 disabled:to-slate-300 dark:disabled:from-slate-800 dark:disabled:to-slate-900 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+                    >
+                      {isCleaningChapter ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Restructuring...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" /> Clean Active Chapter
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="w-full h-px bg-slate-200 dark:bg-slate-800" />
+
+                {/* Module: Neural Mindmap */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <Network className="h-3.5 w-3.5 text-emerald-500" />
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Neural Mindmap</h4>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Generate an interactive concept graph linking ideas from the compiled wiki.
+                  </p>
+                  
+                  <button
+                    onClick={handleGenerateMindmap}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Network className="h-3.5 w-3.5 text-emerald-500" /> Generate Graph
+                  </button>
+                </div>
+
+                <div className="w-full h-px bg-slate-200 dark:bg-slate-800" />
+
+                {/* Module: Socratic Selection */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <MessageSquare className="h-3.5 w-3.5 text-amber-500" />
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Inline Assist</h4>
+                  </div>
+                  <div className="p-3 bg-amber-50 dark:bg-amber-500/10 rounded-xl border border-amber-200 dark:border-amber-500/20">
+                    <p className="text-[11px] text-amber-800 dark:text-amber-200 leading-relaxed">
+                      <strong>Tip:</strong> Select any text in the notes paper to trigger the inline HUD. You can highlight, add comments, or ask the Socratic AI to explain the selected concept.
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </aside>
           </div>
           </main>
         </div>
       </div>
 
-      {/* ── Floating Text Selection Toolbar (Popover) ── */}
-      {popoverPosition && selectedText && (
+      {/* ── Fixed Top Text Selection HUD Toolbar (Persists until close) ── */}
+      {popoverPosition && selectedText && !isRestructuring && (
         <div 
-          className="absolute z-50 flex items-center gap-1.5 p-1.5 bg-slate-900/95 dark:bg-slate-950/95 text-white rounded-full border border-slate-700 dark:border-slate-800 shadow-2xl backdrop-blur-md transition-all duration-200 select-none -translate-x-1/2"
-          style={{ 
-            top: `${popoverPosition.top}px`, 
-            left: `${popoverPosition.left}px`,
-          }}
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2.5 p-2 bg-slate-900/90 dark:bg-slate-950/90 text-white rounded-full border border-slate-700/80 dark:border-slate-800/80 shadow-2xl backdrop-blur-lg select-none animate-fade-in pr-3 pl-3"
         >
+          {/* Selected Text Preview Pill */}
+          <div className="flex items-center gap-1.5 pr-2.5 border-r border-slate-700 max-w-[120px] sm:max-w-[200px] select-text">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+              "{selectedText}"
+            </span>
+          </div>
+
           {/* Highlight Color Pickers */}
-          <div className="flex items-center gap-1.5 px-2 border-r border-slate-700">
+          <div className="flex items-center gap-1.5 px-2 border-r border-slate-700 select-none">
             <button 
               onClick={() => handleSaveHighlight("yellow")}
               className="w-4 h-4 rounded-full bg-amber-400 hover:scale-110 active:scale-95 transition cursor-pointer"
@@ -3391,7 +3959,7 @@ export default function SubjectBinder() {
           {/* Quick Annotation Button */}
           <button 
             onClick={() => setIsAnnotating(true)}
-            className="px-2 py-1 hover:bg-slate-800 rounded-full text-[11px] font-bold flex items-center gap-1 text-slate-300 hover:text-white transition cursor-pointer"
+            className="px-2.5 py-1 hover:bg-slate-800 rounded-full text-[11px] font-bold flex items-center gap-1 text-slate-300 hover:text-white transition cursor-pointer"
             title="Add sticky comment"
           >
             📝 <span className="hidden sm:inline">Comment</span>
@@ -3400,7 +3968,7 @@ export default function SubjectBinder() {
           {/* Socratic Explanation Button */}
           <button 
             onClick={handleSocraticQuery}
-            className="px-2 py-1 hover:bg-slate-800 rounded-full text-[11px] font-bold flex items-center gap-1 text-indigo-300 hover:text-indigo-200 transition cursor-pointer"
+            className="px-2.5 py-1 hover:bg-slate-800 rounded-full text-[11px] font-bold flex items-center gap-1 text-indigo-300 hover:text-indigo-200 transition cursor-pointer"
             title="Ask Socratic AI to explain this selection"
           >
             💬 <span className="hidden sm:inline">Explain</span>
@@ -3412,7 +3980,7 @@ export default function SubjectBinder() {
               setIsRestructuring(true);
               setRestructuredText("");
             }}
-            className="px-2 py-1 hover:bg-slate-800 rounded-full text-[11px] font-bold flex items-center gap-1 text-amber-300 hover:text-amber-200 transition cursor-pointer"
+            className="px-2.5 py-1 hover:bg-slate-800 rounded-full text-[11px] font-bold flex items-center gap-1 text-amber-300 hover:text-amber-200 transition cursor-pointer"
             title="Use AI to restructure selection"
           >
             🪄 <span className="hidden sm:inline">Restructure</span>
@@ -3423,6 +3991,10 @@ export default function SubjectBinder() {
             onClick={() => {
               setSelectedText("");
               setPopoverPosition(null);
+              // Clear browser highlights/selection
+              if (typeof window !== "undefined") {
+                window.getSelection()?.removeAllRanges();
+              }
             }}
             className="p-1 hover:bg-rose-500/20 hover:text-rose-400 rounded-full text-slate-400 transition cursor-pointer ml-0.5"
             title="Clear Selection"
@@ -3633,6 +4205,367 @@ export default function SubjectBinder() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Floating Glass TTS Player Pill (Apple Books Style) ── */}
+      {(isPlaying || isPaused) && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2.5 bg-slate-900/90 dark:bg-slate-950/90 border border-slate-700/80 dark:border-slate-800/80 rounded-full shadow-2xl backdrop-blur-lg text-white select-none animate-fade-in max-w-sm sm:max-w-md w-max">
+          {/* Visual pulse status */}
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isPlaying ? "bg-emerald-400" : "bg-amber-400"}`} />
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${isPlaying ? "bg-emerald-500" : "bg-amber-500"}`} />
+          </span>
+
+          {/* Chapter Text Info */}
+          <div className="flex flex-col min-w-0 pr-2 border-r border-slate-700/50">
+            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">Audio Reader</span>
+            <span className="text-[11px] font-semibold text-slate-200 truncate max-w-[120px]">
+              Reading block {currentBlockIndex !== null ? currentBlockIndex + 1 : 0}
+            </span>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex items-center gap-1">
+            {isPlaying ? (
+              <button
+                onClick={handlePauseTTS}
+                className="p-1.5 rounded-full hover:bg-slate-800 text-amber-400 transition cursor-pointer"
+                title="Pause Reading"
+              >
+                <Pause className="h-4 w-4 fill-current" />
+              </button>
+            ) : (
+              <button
+                onClick={handlePlayTTS}
+                className="p-1.5 rounded-full hover:bg-slate-800 text-emerald-400 transition cursor-pointer"
+                title="Resume Reading"
+              >
+                <Play className="h-4 w-4 fill-current" />
+              </button>
+            )}
+            
+            <button
+              onClick={handleStopTTS}
+              className="p-1.5 rounded-full hover:bg-rose-500/20 text-rose-400 transition cursor-pointer"
+              title="Stop Reading"
+            >
+              <Square className="h-3.5 w-3.5 fill-current" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── AI Restructuring Focused Fullscreen Modal Overlay ── */}
+      {isRestructuring && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in select-none">
+          <div className="w-full max-w-2xl bg-[#0f1422]/95 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scale-in">
+            {/* Modal Header */}
+            <div className="px-5 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0">
+              <span className="text-sm font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2 font-sans">
+                🪄 AI Restructuring Studio
+              </span>
+              <button 
+                onClick={() => {
+                  setIsRestructuring(false);
+                  setRestructuredText("");
+                }}
+                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 select-text">
+              {/* Selected Text Segment */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block font-sans">Original Selection</label>
+                <div className="p-4 bg-slate-950/50 border border-slate-850 rounded-xl text-xs leading-relaxed text-slate-400 italic max-h-32 overflow-y-auto font-sans select-all">
+                  "{selectedText}"
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-indigo-950/10 border border-indigo-950/20 rounded-xl select-none">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block font-sans">Visual Format</label>
+                  <select
+                    value={restructureStyle}
+                    onChange={(e) => setRestructureStyle(e.target.value)}
+                    className="w-full text-xs p-2 bg-slate-900 border border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-200 cursor-pointer"
+                  >
+                    <option value="bullets">📋 High-Yield Bullet List</option>
+                    <option value="table">📊 Factual Comparison Table</option>
+                    <option value="timeline">⏱️ Chronological Flow / Timeline</option>
+                    <option value="mnemonics">⚡ Revision Mnemonics &amp; Key Facts</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block font-sans">Custom Instructions</label>
+                  <input
+                    type="text"
+                    value={restructureCustom}
+                    onChange={(e) => setRestructureCustom(e.target.value)}
+                    placeholder="e.g., make it sound conversational..."
+                    className="w-full text-xs p-2 bg-slate-900 border border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-200 placeholder:text-slate-600 font-sans"
+                  />
+                </div>
+
+                <button
+                  onClick={handleRestructureQuery}
+                  disabled={generatingRestructure}
+                  className="sm:col-span-2 w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white text-xs font-bold rounded-lg transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed font-sans"
+                >
+                  {generatingRestructure ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Restructuring notes segment...
+                    </>
+                  ) : (
+                    <>
+                      🪄 Execute Note Restructuring
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* AI Result Preview Card */}
+              {(generatingRestructure || restructuredText) && (
+                <div className="space-y-1.5 pt-2 flex flex-col min-h-[180px]">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block font-sans">Restructured AI Output Preview</label>
+                  <div className="flex-1 p-4 bg-slate-950 border border-slate-850 rounded-xl text-xs leading-relaxed text-slate-350 overflow-y-auto max-h-60 select-text font-sans scrollbar-thin">
+                    {generatingRestructure ? (
+                      <div className="flex flex-col items-center justify-center py-10 gap-3 text-slate-500 select-none">
+                        <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+                        <span>AI is restructuring note elements...</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {restructuredText.split("\n\n").map((p, idx) => {
+                          if (p.startsWith("|")) {
+                            // Render preview table
+                            return (
+                              <div key={idx} className="overflow-x-auto my-2 border border-slate-850 rounded-lg">
+                                <table className="w-full text-left text-[11px] leading-relaxed">
+                                  <tbody>
+                                    {p.split("\n").map((row, rIdx) => (
+                                      <tr key={rIdx} className="border-b border-slate-900 hover:bg-slate-900/40">
+                                        {row.split("|").slice(1, -1).map((cell, cIdx) => (
+                                          <td key={cIdx} className="p-2 font-medium">{cell.trim()}</td>
+                                        ))}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            );
+                          }
+                          if (p.startsWith("#") || p.startsWith("##") || p.startsWith("###")) {
+                            return <h4 key={idx} className="font-bold text-indigo-400 mt-2 text-xs">{p.replace(/#/g, "")}</h4>;
+                          }
+                          if (p.startsWith("-") || p.startsWith("*")) {
+                            return (
+                              <ul key={idx} className="list-disc pl-5 space-y-1 text-xs">
+                                {p.split("\n").map((item, iIdx) => (
+                                  <li key={iIdx}>{item.replace(/^[-*]\s+/, "")}</li>
+                                ))}
+                              </ul>
+                            );
+                          }
+                          return <p key={idx} className="leading-relaxed text-justify">{p}</p>;
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer Actions */}
+            {restructuredText && !generatingRestructure && (
+              <div className="px-6 py-4 bg-slate-900 border-t border-slate-800 flex gap-3 shrink-0 select-none">
+                <button
+                  onClick={() => {
+                    setRestructuredText("");
+                    setIsRestructuring(false);
+                  }}
+                  className="flex-1 py-2 border border-slate-700 text-slate-350 hover:bg-slate-800 text-xs font-bold rounded-lg cursor-pointer transition text-center font-sans"
+                >
+                  Discard Changes
+                </button>
+                <button
+                  onClick={handleApplyRestructure}
+                  className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg cursor-pointer transition shadow-md flex items-center justify-center gap-1.5 text-center font-sans"
+                >
+                  Accept &amp; Save Changes
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Transactional Chapter Restructuring Sandbox Compare Workspace ── */}
+      {isSandboxPreviewing && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 select-none animate-fade-in">
+          <div className="w-full max-w-6xl h-[88vh] bg-[#0c101c]/98 border border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-scale-in">
+            {/* Header */}
+            <div className="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20 text-sm">📖</span>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100 font-sans">Chapter Restructuring Sandbox</h3>
+                  <p className="text-[10px] text-slate-400 mt-0.5 font-sans">Refining: "{restructureContext?.targetChapter}" in {subject}</p>
+                </div>
+              </div>
+              
+              {!isCleaningChapter && (
+                <button
+                  onClick={() => {
+                    setIsSandboxPreviewing(false);
+                    setRestructurePreviewText("");
+                    setOriginalTextBackup("");
+                    setRestructureContext(null);
+                  }}
+                  className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Side-by-Side Panels Content */}
+            <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800 bg-slate-950/20 select-text">
+              {/* Left Side: Original Chapter */}
+              <div className="flex flex-col h-full overflow-hidden">
+                <div className="px-5 py-3 border-b border-slate-800/60 bg-slate-900/40 flex items-center justify-between shrink-0">
+                  <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest font-sans">Original Source Notes</span>
+                  <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full shrink-0 font-sans">
+                    {originalTextBackup ? `${originalTextBackup.length.toLocaleString()} chars` : "0 chars"}
+                  </span>
+                </div>
+                <div className="flex-1 p-6 overflow-y-auto font-sans leading-relaxed text-slate-350 text-xs whitespace-pre-wrap select-all selection:bg-slate-800 select-text">
+                  {originalTextBackup || "Loading original chapter..."}
+                </div>
+              </div>
+
+              {/* Right Side: Refining AI Preview */}
+              <div className="flex flex-col h-full overflow-hidden bg-indigo-950/[0.02]">
+                <div className="px-5 py-3 border-b border-slate-800/60 bg-slate-900/40 flex items-center justify-between shrink-0">
+                  <span className="text-[10px] font-extrabold text-indigo-400 uppercase tracking-widest font-sans flex items-center gap-1.5 animate-pulse">
+                    ✨ Refined AI Preview
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {isCleaningChapter && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full shrink-0 animate-pulse font-sans">
+                        ⚡ Streaming...
+                      </span>
+                    )}
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full shrink-0 font-sans">
+                      {restructurePreviewText ? `${restructurePreviewText.length.toLocaleString()} chars` : "0 chars"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex-1 p-6 overflow-y-auto font-sans leading-relaxed text-slate-200 text-xs select-text">
+                  {!restructurePreviewText && isCleaningChapter ? (
+                    <div className="flex flex-col items-center justify-center h-full space-y-3 shrink-0">
+                      <Loader2 className="h-6 w-6 text-indigo-500 animate-spin shrink-0" />
+                      <span className="text-xs text-slate-500 font-sans animate-pulse">AI is parsing and restructuring...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {restructurePreviewText.split("\n\n").map((p, idx) => {
+                        if (p.startsWith("### ")) {
+                          return (
+                            <h3 key={idx} className="font-sans font-bold text-sm text-slate-100 border-b border-slate-800 pb-1 mt-4">
+                              {p.replace("### ", "")}
+                            </h3>
+                          );
+                        }
+                        if (p.startsWith("|") || p.startsWith("┌")) {
+                          return (
+                            <div key={idx} className="overflow-x-auto my-3 p-3 bg-slate-900/50 border border-slate-800 rounded-xl">
+                              <pre className="text-[10px] font-mono text-indigo-300 leading-normal whitespace-pre">
+                                {p}
+                              </pre>
+                            </div>
+                          );
+                        }
+                        if (p.startsWith("-") || p.startsWith("*") || p.startsWith("•")) {
+                          return (
+                            <ul key={idx} className="list-disc pl-5 space-y-1.5 text-xs text-slate-350">
+                              {p.split("\n").map((item, iIdx) => (
+                                <li key={iIdx}>{item.replace(/^[-*•]\s+/, "")}</li>
+                              ))}
+                            </ul>
+                          );
+                        }
+                        return <p key={idx} className="leading-relaxed text-justify text-slate-300 select-text">{p}</p>;
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="px-6 py-4 bg-slate-900 border-t border-slate-800 flex items-center justify-between shrink-0 select-none">
+              <div className="text-[10px] text-slate-500 font-sans max-w-sm hidden sm:block">
+                Original H2 heading and source parameters are shielded programmatically to ensure link and TOC integrity.
+              </div>
+              <div className="flex gap-3 shrink-0">
+                <button
+                  disabled={isCleaningChapter}
+                  onClick={() => {
+                    setIsSandboxPreviewing(false);
+                    setRestructurePreviewText("");
+                    setOriginalTextBackup("");
+                    setRestructureContext(null);
+                  }}
+                  className="px-5 py-2 border border-slate-700 text-slate-350 hover:text-white text-xs font-bold rounded-lg transition shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 font-sans"
+                >
+                  Discard Changes
+                </button>
+                <button
+                  disabled={isCleaningChapter || !restructurePreviewText}
+                  onClick={handleApplyChapterClean}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-850 disabled:text-slate-550 text-white text-xs font-bold rounded-lg transition shrink-0 shadow-md cursor-pointer disabled:cursor-not-allowed flex items-center gap-1.5 font-sans"
+                >
+                  {isCleaningChapter ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+                      Refining...
+                    </>
+                  ) : (
+                    <>
+                      Accept &amp; Apply Clean
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Visual Instant Undo Toast Notification Overlay ── */}
+      {showUndoToast && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 bg-slate-900/95 border border-slate-800 shadow-2xl rounded-2xl flex items-center gap-4 shrink-0 font-sans select-none animate-slide-up max-w-md backdrop-blur-md">
+          <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm">
+            ⚡
+          </div>
+          <div className="flex-1">
+            <h4 className="text-xs font-bold text-slate-100">Notes Restructured</h4>
+            <p className="text-[10px] text-slate-400 mt-0.5">The chapter has been successfully cleaned and saved.</p>
+          </div>
+          <button
+            onClick={handleUndoRestructure}
+            className="px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 transition text-xs font-extrabold cursor-pointer flex items-center gap-1 shadow-inner shrink-0"
+          >
+            ↩️ Undo
+          </button>
         </div>
       )}
     </>

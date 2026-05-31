@@ -1,0 +1,1621 @@
+[2026-05-31T17:36:58.569Z] [SYSTEM] Logs cleared by reset.
+[2026-05-31T17:52:13.515Z] [ERROR] Fetch error to Gemini API: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0iudsgw._.js:298:28)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:52:13.587Z] [ERROR] [browser] Error cleaning chapter: Error: Failed to connect to Gemini API: fetch failed
+    at <unknown> (src/app/subject/page.tsx:2281:19)
+  2279 |       if (!response.ok) {
+  2280 |         const errorData = await response.json().catch(() => ({}));
+> 2281 |         throw new Error(errorData.error || `Stream request failed: ${response.statusText...
+       |                   ^
+  2282 |       }
+  2283 |
+  2284 |       const reader = response.body?.getReader();
+[2026-05-31T17:52:59.901Z] [ERROR] Fetch error to Gemini API: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0iudsgw._.js:298:28)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:52:59.918Z] [ERROR] [browser] Error cleaning chapter: Error: Failed to connect to Gemini API: fetch failed
+    at <unknown> (src/app/subject/page.tsx:2281:19)
+  2279 |       if (!response.ok) {
+  2280 |         const errorData = await response.json().catch(() => ({}));
+> 2281 |         throw new Error(errorData.error || `Stream request failed: ${response.statusText...
+       |                   ^
+  2282 |       }
+  2283 |
+  2284 |       const reader = response.body?.getReader();
+[2026-05-31T17:53:13.732Z] [INFO] [Test Connection API] Starting test for provider: cloud
+[2026-05-31T17:53:13.732Z] [INFO] [Test Connection API] Configured Gemini model: gemini-2.5-pro
+[2026-05-31T17:53:13.732Z] [INFO] [Test Connection API] API Key length: 39
+[2026-05-31T17:53:24.312Z] [ERROR] [Test Connection API] generateText failed, fetching available models... TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0ids_89._.js:108:26)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:340:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:34.882Z] [ERROR] Failed to list models: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:347:37)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:34.924Z] [ERROR] Connection test failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0ids_89._.js:108:26)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:340:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:38.386Z] [INFO] [Test Connection API] Starting test for provider: cloud
+[2026-05-31T17:53:38.387Z] [INFO] [Test Connection API] Configured Gemini model: gemini-2.5-pro
+[2026-05-31T17:53:38.387Z] [INFO] [Test Connection API] API Key length: 39
+[2026-05-31T17:53:39.232Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\nPlease retry in 20.879082619s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerDay-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerMinutePerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "20s"
+      }
+    ]
+  }
+}
+
+    at generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0ids_89._.js:117:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:340:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:39.691Z] [ERROR] Failed to list models: Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\nPlease retry in 20.879082619s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerDay-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerMinutePerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "20s"
+      }
+    ]
+  }
+}
+. Available models: models/gemini-2.5-flash, models/gemini-2.5-pro, models/gemini-2.0-flash, models/gemini-2.0-flash-001, models/gemini-2.0-flash-lite-001, models/gemini-2.0-flash-lite, models/gemini-2.5-flash-preview-tts, models/gemini-2.5-pro-preview-tts, models/gemma-4-26b-a4b-it, models/gemma-4-31b-it, models/gemini-flash-latest, models/gemini-flash-lite-latest, models/gemini-pro-latest, models/gemini-2.5-flash-lite, models/gemini-2.5-flash-image, models/gemini-3-pro-preview, models/gemini-3-flash-preview, models/gemini-3.1-pro-preview, models/gemini-3.1-pro-preview-customtools, models/gemini-3.1-flash-lite-preview, models/gemini-3.1-flash-lite, models/gemini-3-pro-image-preview, models/gemini-3-pro-image, models/nano-banana-pro-preview, models/gemini-3.1-flash-image-preview, models/gemini-3.1-flash-image, models/gemini-3.5-flash, models/lyria-3-clip-preview, models/lyria-3-pro-preview, models/gemini-3.1-flash-tts-preview, models/gemini-robotics-er-1.5-preview, models/gemini-robotics-er-1.6-preview, models/gemini-2.5-computer-use-preview-10-2025, models/antigravity-preview-05-2026, models/deep-research-max-preview-04-2026, models/deep-research-preview-04-2026, models/deep-research-pro-preview-12-2025, models/gemini-embedding-001, models/gemini-embedding-2-preview, models/gemini-embedding-2, models/aqa, models/imagen-4.0-generate-001, models/imagen-4.0-ultra-generate-001, models/imagen-4.0-fast-generate-001, models/veo-2.0-generate-001, models/veo-3.0-generate-001, models/veo-3.0-fast-generate-001, models/veo-3.1-generate-preview, models/veo-3.1-fast-generate-preview, models/veo-3.1-lite-generate-preview
+    at POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:351:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:39.721Z] [ERROR] Connection test failed: Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\nPlease retry in 20.879082619s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerDay-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerMinutePerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-pro"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "20s"
+      }
+    ]
+  }
+}
+
+    at generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0ids_89._.js:117:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:340:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:46.339Z] [INFO] [Test Connection API] Starting test for provider: cloud
+[2026-05-31T17:53:46.340Z] [INFO] [Test Connection API] Configured Gemini model: gemini-2.5-flash
+[2026-05-31T17:53:46.340Z] [INFO] [Test Connection API] API Key length: 39
+[2026-05-31T17:53:47.496Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 13.048345385s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "13s"
+      }
+    ]
+  }
+}
+
+    at generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0ids_89._.js:117:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:340:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:47.727Z] [ERROR] Failed to list models: Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 13.048345385s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "13s"
+      }
+    ]
+  }
+}
+. Available models: models/gemini-2.5-flash, models/gemini-2.5-pro, models/gemini-2.0-flash, models/gemini-2.0-flash-001, models/gemini-2.0-flash-lite-001, models/gemini-2.0-flash-lite, models/gemini-2.5-flash-preview-tts, models/gemini-2.5-pro-preview-tts, models/gemma-4-26b-a4b-it, models/gemma-4-31b-it, models/gemini-flash-latest, models/gemini-flash-lite-latest, models/gemini-pro-latest, models/gemini-2.5-flash-lite, models/gemini-2.5-flash-image, models/gemini-3-pro-preview, models/gemini-3-flash-preview, models/gemini-3.1-pro-preview, models/gemini-3.1-pro-preview-customtools, models/gemini-3.1-flash-lite-preview, models/gemini-3.1-flash-lite, models/gemini-3-pro-image-preview, models/gemini-3-pro-image, models/nano-banana-pro-preview, models/gemini-3.1-flash-image-preview, models/gemini-3.1-flash-image, models/gemini-3.5-flash, models/lyria-3-clip-preview, models/lyria-3-pro-preview, models/gemini-3.1-flash-tts-preview, models/gemini-robotics-er-1.5-preview, models/gemini-robotics-er-1.6-preview, models/gemini-2.5-computer-use-preview-10-2025, models/antigravity-preview-05-2026, models/deep-research-max-preview-04-2026, models/deep-research-preview-04-2026, models/deep-research-pro-preview-12-2025, models/gemini-embedding-001, models/gemini-embedding-2-preview, models/gemini-embedding-2, models/aqa, models/imagen-4.0-generate-001, models/imagen-4.0-ultra-generate-001, models/imagen-4.0-fast-generate-001, models/veo-2.0-generate-001, models/veo-3.0-generate-001, models/veo-3.0-fast-generate-001, models/veo-3.1-generate-preview, models/veo-3.1-fast-generate-preview, models/veo-3.1-lite-generate-preview
+    at POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:351:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:47.758Z] [ERROR] Connection test failed: Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 13.048345385s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.5-flash"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "13s"
+      }
+    ]
+  }
+}
+
+    at generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0ids_89._.js:117:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:340:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T17:53:50.423Z] [INFO] [Test Connection API] Starting test for provider: cloud
+[2026-05-31T17:53:50.425Z] [INFO] [Test Connection API] Configured Gemini model: gemini-3.5-flash
+[2026-05-31T17:53:50.425Z] [INFO] [Test Connection API] API Key length: 39
+[2026-05-31T17:53:52.025Z] [INFO] [Test Connection API] Success! Response from LLM: "CONNECTED"
+[2026-05-31T17:54:45.417Z] [ERROR] [browser] Error cleaning chapter: Error: Gemini Stream API error: {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.5-flash\nPlease retry in 14.62605112s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-3.5-flash"
+            },
+            "quotaValue": "20"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "14s"
+      }
+    ]
+  }
+}
+
+    at <unknown> (src/app/subject/page.tsx:2281:19)
+  2279 |       if (!response.ok) {
+  2280 |         const errorData = await response.json().catch(() => ({}));
+> 2281 |         throw new Error(errorData.error || `Stream request failed: ${response.statusText...
+       |                   ^
+  2282 |       }
+  2283 |
+  2284 |       const reader = response.body?.getReader();
+[2026-05-31T18:12:41.007Z] [INFO] ✓ Compiled in 344ms
+[2026-05-31T18:12:45.166Z] [INFO] ✓ Compiled in 101ms
+[2026-05-31T18:13:04.819Z] [INFO] ✓ Compiled in 38ms
+[2026-05-31T18:15:01.075Z] [WARN] ⚠ Fast Refresh had to perform a full reload when ./StudyApp/src/lib/settings.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[2026-05-31T18:15:01.075Z] [WARN] ⚠ Fast Refresh had to perform a full reload when ./StudyApp/src/lib/settings.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[2026-05-31T18:15:01.075Z] [WARN] ⚠ Fast Refresh had to perform a full reload when ./StudyApp/src/lib/settings.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[2026-05-31T18:17:13.887Z] [INFO]   Reload env: .env
+[2026-05-31T18:17:45.043Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:17:45.043Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:17:55.501Z] [ERROR] [Test Connection API] generateText failed, fetching available models... TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:203:26)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:405:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:17:55.539Z] [ERROR] Connection test failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:203:26)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:405:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:18:03.069Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:18:03.070Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:18:12.339Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: OpenAI API error (429): {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+    at generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:213:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:405:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:18:12.377Z] [ERROR] Connection test failed: Error: OpenAI API error (429): {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+    at generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:213:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:405:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:18:24.757Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:18:24.758Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:18:35.333Z] [ERROR] [Test Connection API] generateText failed, fetching available models... TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:203:26)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:405:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:18:35.369Z] [ERROR] Connection test failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:203:26)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:405:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:19:07.911Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:19:07.912Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:19:18.467Z] [ERROR] [Test Connection API] generateText failed, fetching available models... TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:203:26)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:405:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:19:18.498Z] [ERROR] Connection test failed: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateText (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:203:26)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__07ethxt._.js:405:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:24:54.474Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:24:54.475Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:24:54.476Z] [INFO] [ai-provider] Making request to OpenAI: model=o1-mini, keyLength=164
+[2026-05-31T18:24:55.931Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: OpenAI API error (404): {
+    "error": {
+        "message": "The model `o1-mini` does not exist or you do not have access to it.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": "model_not_found"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:80:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:24:55.973Z] [ERROR] Connection test failed: Error: OpenAI API error (404): {
+    "error": {
+        "message": "The model `o1-mini` does not exist or you do not have access to it.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": "model_not_found"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:80:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:25:05.321Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:25:05.322Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:25:05.322Z] [INFO] [ai-provider] Making request to OpenAI: model=gpt-4o, keyLength=164
+[2026-05-31T18:25:06.270Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: OpenAI API error (429): {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:80:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:25:06.300Z] [ERROR] Connection test failed: Error: OpenAI API error (429): {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:80:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:25:11.363Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:25:11.363Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:25:11.363Z] [INFO] [ai-provider] Making request to OpenAI: model=gpt-4o-mini, keyLength=164
+[2026-05-31T18:25:12.182Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: OpenAI API error (429): {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:80:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:25:12.214Z] [ERROR] Connection test failed: Error: OpenAI API error (429): {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:80:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:25:47.002Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:25:47.004Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:25:47.004Z] [INFO] [ai-provider] Making request to OpenAI: model=o1-mini, keyLength=164
+[2026-05-31T18:25:48.127Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: OpenAI API error (404): {
+    "error": {
+        "message": "The model `o1-mini` does not exist or you do not have access to it.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": "model_not_found"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:80:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:25:48.165Z] [ERROR] Connection test failed: Error: OpenAI API error (404): {
+    "error": {
+        "message": "The model `o1-mini` does not exist or you do not have access to it.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": "model_not_found"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:80:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:38:10.257Z] [WARN] ⚠ Fast Refresh had to perform a full reload when ./StudyApp/src/lib/settings.ts changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[2026-05-31T18:38:10.321Z] [INFO] ✓ Compiled in 245ms
+[2026-05-31T18:38:13.746Z] [WARN] ⚠ Fast Refresh had to perform a full reload when ./StudyApp/src/contexts/AIConfigContext.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[2026-05-31T18:38:13.783Z] [INFO] ✓ Compiled in 52ms
+[2026-05-31T18:38:34.304Z] [INFO] ✓ Compiled in 102ms
+[2026-05-31T18:52:45.926Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:52:45.928Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:52:45.929Z] [INFO] [ai-provider] Making request to openai: model=o1-mini, keyLength=164
+[2026-05-31T18:52:47.089Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: openai API error (404): {
+    "error": {
+        "message": "The model `o1-mini` does not exist or you do not have access to it.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": "model_not_found"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:132:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:52:47.140Z] [ERROR] Connection test failed: Error: openai API error (404): {
+    "error": {
+        "message": "The model `o1-mini` does not exist or you do not have access to it.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": "model_not_found"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:132:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:52:51.986Z] [INFO] [Test Connection API] Starting test for provider: openai
+[2026-05-31T18:52:51.986Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:52:51.987Z] [INFO] [ai-provider] Making request to openai: model=gpt-4o-mini, keyLength=164
+[2026-05-31T18:52:53.422Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: openai API error (429): {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:132:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:52:53.453Z] [ERROR] Connection test failed: Error: openai API error (429): {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.",
+        "type": "insufficient_quota",
+        "param": null,
+        "code": "insufficient_quota"
+    }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:132:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:53:02.919Z] [INFO] [Test Connection API] Starting test for provider: cloud
+[2026-05-31T18:53:02.920Z] [INFO] [Test Connection API] Configured Gemini model: gemini-2.0-flash
+[2026-05-31T18:53:02.920Z] [INFO] [Test Connection API] API Key length: 39
+[2026-05-31T18:53:03.599Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\nPlease retry in 56.501084813s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.0-flash"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerMinutePerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "model": "gemini-2.0-flash",
+              "location": "global"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.0-flash"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "56s"
+      }
+    ]
+  }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:181:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:53:03.906Z] [ERROR] Failed to list models: Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\nPlease retry in 56.501084813s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.0-flash"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerMinutePerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "model": "gemini-2.0-flash",
+              "location": "global"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.0-flash"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "56s"
+      }
+    ]
+  }
+}
+. Available models: models/gemini-2.5-flash, models/gemini-2.5-pro, models/gemini-2.0-flash, models/gemini-2.0-flash-001, models/gemini-2.0-flash-lite-001, models/gemini-2.0-flash-lite, models/gemini-2.5-flash-preview-tts, models/gemini-2.5-pro-preview-tts, models/gemma-4-26b-a4b-it, models/gemma-4-31b-it, models/gemini-flash-latest, models/gemini-flash-lite-latest, models/gemini-pro-latest, models/gemini-2.5-flash-lite, models/gemini-2.5-flash-image, models/gemini-3-pro-preview, models/gemini-3-flash-preview, models/gemini-3.1-pro-preview, models/gemini-3.1-pro-preview-customtools, models/gemini-3.1-flash-lite-preview, models/gemini-3.1-flash-lite, models/gemini-3-pro-image-preview, models/gemini-3-pro-image, models/nano-banana-pro-preview, models/gemini-3.1-flash-image-preview, models/gemini-3.1-flash-image, models/gemini-3.5-flash, models/lyria-3-clip-preview, models/lyria-3-pro-preview, models/gemini-3.1-flash-tts-preview, models/gemini-robotics-er-1.5-preview, models/gemini-robotics-er-1.6-preview, models/gemini-2.5-computer-use-preview-10-2025, models/antigravity-preview-05-2026, models/deep-research-max-preview-04-2026, models/deep-research-preview-04-2026, models/deep-research-pro-preview-12-2025, models/gemini-embedding-001, models/gemini-embedding-2-preview, models/gemini-embedding-2, models/aqa, models/imagen-4.0-generate-001, models/imagen-4.0-ultra-generate-001, models/imagen-4.0-fast-generate-001, models/veo-2.0-generate-001, models/veo-3.0-generate-001, models/veo-3.0-fast-generate-001, models/veo-3.1-generate-preview, models/veo-3.1-fast-generate-preview, models/veo-3.1-lite-generate-preview
+    at POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:38:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:53:03.942Z] [ERROR] Connection test failed: Error: Gemini API error (429): {
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash\nPlease retry in 56.501084813s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.Help",
+        "links": [
+          {
+            "description": "Learn more about Gemini API quotas",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+        "violations": [
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.0-flash"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerMinutePerProjectPerModel-FreeTier",
+            "quotaDimensions": {
+              "model": "gemini-2.0-flash",
+              "location": "global"
+            }
+          },
+          {
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
+            "quotaDimensions": {
+              "location": "global",
+              "model": "gemini-2.0-flash"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "56s"
+      }
+    ]
+  }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:181:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:53:07.551Z] [INFO] [Test Connection API] Starting test for provider: cloud
+[2026-05-31T18:53:07.552Z] [INFO] [Test Connection API] Configured Gemini model: gemini-2.0-pro-exp-02-05
+[2026-05-31T18:53:07.552Z] [INFO] [Test Connection API] API Key length: 39
+[2026-05-31T18:53:07.775Z] [ERROR] [Test Connection API] generateText failed, fetching available models... Error: Gemini API error (404): {
+  "error": {
+    "code": 404,
+    "message": "models/gemini-2.0-pro-exp-02-05 is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.",
+    "status": "NOT_FOUND"
+  }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:181:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:53:07.993Z] [ERROR] Failed to list models: Error: Gemini API error (404): {
+  "error": {
+    "code": 404,
+    "message": "models/gemini-2.0-pro-exp-02-05 is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.",
+    "status": "NOT_FOUND"
+  }
+}
+. Available models: models/gemini-2.5-flash, models/gemini-2.5-pro, models/gemini-2.0-flash, models/gemini-2.0-flash-001, models/gemini-2.0-flash-lite-001, models/gemini-2.0-flash-lite, models/gemini-2.5-flash-preview-tts, models/gemini-2.5-pro-preview-tts, models/gemma-4-26b-a4b-it, models/gemma-4-31b-it, models/gemini-flash-latest, models/gemini-flash-lite-latest, models/gemini-pro-latest, models/gemini-2.5-flash-lite, models/gemini-2.5-flash-image, models/gemini-3-pro-preview, models/gemini-3-flash-preview, models/gemini-3.1-pro-preview, models/gemini-3.1-pro-preview-customtools, models/gemini-3.1-flash-lite-preview, models/gemini-3.1-flash-lite, models/gemini-3-pro-image-preview, models/gemini-3-pro-image, models/nano-banana-pro-preview, models/gemini-3.1-flash-image-preview, models/gemini-3.1-flash-image, models/gemini-3.5-flash, models/lyria-3-clip-preview, models/lyria-3-pro-preview, models/gemini-3.1-flash-tts-preview, models/gemini-robotics-er-1.5-preview, models/gemini-robotics-er-1.6-preview, models/gemini-2.5-computer-use-preview-10-2025, models/antigravity-preview-05-2026, models/deep-research-max-preview-04-2026, models/deep-research-preview-04-2026, models/deep-research-pro-preview-12-2025, models/gemini-embedding-001, models/gemini-embedding-2-preview, models/gemini-embedding-2, models/aqa, models/imagen-4.0-generate-001, models/imagen-4.0-ultra-generate-001, models/imagen-4.0-fast-generate-001, models/veo-2.0-generate-001, models/veo-3.0-generate-001, models/veo-3.0-fast-generate-001, models/veo-3.1-generate-preview, models/veo-3.1-fast-generate-preview, models/veo-3.1-lite-generate-preview
+    at POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:38:31)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:53:08.022Z] [ERROR] Connection test failed: Error: Gemini API error (404): {
+  "error": {
+    "code": 404,
+    "message": "models/gemini-2.0-pro-exp-02-05 is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.",
+    "status": "NOT_FOUND"
+  }
+}
+
+    at generateText (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__0_6lkxl._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Flib%2Fai-provider.ts+%5Bapp-route%5D+%28ecmascript%29:181:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (file:///Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/%5Broot-of-the-server%5D__07ethxt._.js?id=%5Bproject%5D%2FStudyApp%2Fsrc%2Fapp%2Fapi%2Fsettings%2Ftest%2Froute.ts+%5Bapp-route%5D+%28ecmascript%29:27:21)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_046v2_w._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:53:40.555Z] [INFO] [Test Connection API] Starting test for provider: groq
+[2026-05-31T18:53:40.556Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:53:40.556Z] [INFO] [ai-provider] Making request to groq: model=llama-3.3-70b-versatile, keyLength=56
+[2026-05-31T18:53:41.145Z] [INFO] [Test Connection API] Success! Response from LLM: "CONNECTED"
+[2026-05-31T18:54:32.079Z] [INFO] [ai-provider] Making request to groq: model=llama-3.3-70b-versatile, keyLength=56
+[2026-05-31T18:55:10.884Z] [INFO] [ai-provider] Making request to groq: model=llama-3.3-70b-versatile, keyLength=56
+[2026-05-31T18:58:04.718Z] [ERROR] Fetch error to Local AI API: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0iudsgw._.js:563:28)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:58:04.740Z] [ERROR] [browser] Error cleaning chapter: Error: Could not connect to local AI at http://localhost:1234/v1. Please ensure LM Studio is running and the Local Server is started on port 1234.
+    at <unknown> (src/app/subject/page.tsx:2281:19)
+  2279 |       if (!response.ok) {
+  2280 |         const errorData = await response.json().catch(() => ({}));
+> 2281 |         throw new Error(errorData.error || `Stream request failed: ${response.statusText...
+       |                   ^
+  2282 |       }
+  2283 |
+  2284 |       const reader = response.body?.getReader();
+[2026-05-31T18:58:27.551Z] [INFO] [Test Connection API] Starting test for provider: groq
+[2026-05-31T18:58:27.552Z] [INFO] [Test Connection API] Configured Local Endpoint: http://localhost:1234/v1
+[2026-05-31T18:58:27.552Z] [INFO] [ai-provider] Making request to groq: model=llama-3.3-70b-versatile, keyLength=56
+[2026-05-31T18:58:28.320Z] [INFO] [Test Connection API] Success! Response from LLM: "CONNECTED"
+[2026-05-31T18:58:48.211Z] [ERROR] Fetch error to Local AI API: TypeError: fetch failed
+    at node:internal/deps/undici/undici:14900:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async POST (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/[root-of-the-server]__0iudsgw._.js:563:28)
+    at async AppRouteRouteModule.do (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:40115)
+    at async AppRouteRouteModule.handle (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:5:47395)
+    at async responseGenerator (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16497:38)
+    at async AppRouteRouteModule.handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/compiled/next-server/app-route-turbo.runtime.dev.js:1:228552)
+    at async handleResponse (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16560:32)
+    at async Module.handler (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/.next/dev/server/chunks/12i8_next_0moh_si._.js:16614:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1462:9)
+    at async DevServer.renderPageComponent (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1514:24)
+    at async DevServer.renderToResponseImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1564:32)
+    at async DevServer.pipeImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:1044:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/next-server.js:338:17)
+    at async DevServer.handleRequestImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/base-server.js:935:17)
+    at async /Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:394:20
+    at async Span.traceAsyncFn (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/trace/trace.js:164:20)
+    at async DevServer.handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/dev/next-dev-server.js:390:24)
+    at async invokeRender (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:266:21)
+    at async handleRequest (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:465:24)
+    at async requestHandlerImpl (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/router-server.js:514:13)
+    at async Server.requestListener (/Users/pranitprakash/Desktop/AI/APPS/aiDratAssistant/StudyApp/node_modules/next/dist/server/lib/start-server.js:225:13)
+[2026-05-31T18:58:48.232Z] [ERROR] [browser] Error cleaning chapter: Error: Could not connect to local AI at http://localhost:1234/v1. Please ensure LM Studio is running and the Local Server is started on port 1234.
+    at <unknown> (src/app/subject/page.tsx:2281:19)
+  2279 |       if (!response.ok) {
+  2280 |         const errorData = await response.json().catch(() => ({}));
+> 2281 |         throw new Error(errorData.error || `Stream request failed: ${response.statusText...
+       |                   ^
+  2282 |       }
+  2283 |
+  2284 |       const reader = response.body?.getReader();

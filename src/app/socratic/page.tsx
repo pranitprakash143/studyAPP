@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import Navbar from "@/components/Navbar";
+import PageLayout from "@/components/PageLayout";
+import PageHeader from "@/components/PageHeader";
+import Card from "@/components/Card";
+import LoadingState from "@/components/LoadingState";
+import ErrorAlert from "@/components/ErrorAlert";
+import StatusBadge from "@/components/StatusBadge";
 import {
   GraduationCap,
   Sparkles,
@@ -214,28 +218,12 @@ export default function SocraticSeminar() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0b0f19]">
-      <Sidebar />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar />
-        
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-8 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-400">
-            <GraduationCap className="h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-              Socratic Seminars Room
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Active Recall Coach. Engage in conceptual oral exams, spot understanding gaps, and build cognitive mastery.
-            </p>
-          </div>
-        </div>
+    <PageLayout maxWidth="6xl">
+      <PageHeader
+        icon={<GraduationCap className="h-6 w-6" />}
+        title="Socratic Seminars Room"
+        description="Active Recall Coach. Engage in conceptual oral exams, spot understanding gaps, and build cognitive mastery."
+      />
 
         {/* 1. SETUP SESSION SCREEN */}
         {sessionState === "setup" && (
@@ -621,9 +609,6 @@ export default function SocraticSeminar() {
             </div>
           </div>
         )}
-      </main>
-        </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

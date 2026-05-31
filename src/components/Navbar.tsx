@@ -2,8 +2,9 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Search, Bell, Sparkles, User, Database } from "lucide-react";
-import { getAIHeaders } from "@/lib/settings";
+import { Search, Sparkles, User, Database } from "lucide-react";
+import { useAIConfig } from "@/contexts/AIConfigContext";
+import ProcessingDashboard from "@/components/ProcessingDashboard";
 
 interface Stats {
   totalSubjects: number;
@@ -13,6 +14,7 @@ interface Stats {
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { aiHeaders } = useAIConfig();
   const [stats, setStats] = useState<Stats | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -22,7 +24,7 @@ export default function Navbar() {
       try {
         const res = await fetch("/api/notes", {
           method: "GET",
-          headers: getAIHeaders(),
+          headers: aiHeaders,
         });
         if (res.ok) {
           const data = await res.json();
@@ -153,14 +155,7 @@ export default function Navbar() {
             </div>
           )}
 
-          {/* Premium Notifications Bell */}
-          <button className="relative p-2 text-slate-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 rounded-full hover:bg-slate-50 dark:hover:bg-slate-900/50 transition cursor-pointer group">
-            <Bell className="h-5 w-5 transition-transform duration-200 group-hover:rotate-12" />
-            <span className="absolute top-1 right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-            </span>
-          </button>
+          <ProcessingDashboard />
 
           {/* Premium Profile Avatar & Glow */}
           <div className="flex items-center space-x-3 pl-2 border-l border-slate-200/60 dark:border-slate-800/60">

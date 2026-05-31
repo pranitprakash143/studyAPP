@@ -36,6 +36,7 @@ import logging
 import os
 import re
 import unicodedata
+import asyncio
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -48,6 +49,7 @@ logger = logging.getLogger(__name__)
 # Path resolution — find knowledge_base/ relative to this file
 # Works in both Docker (/app/knowledge_base) and local dev
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _find_kb_dir() -> Path:
     """Walk up from this file to find knowledge_base/ directory."""
@@ -73,11 +75,13 @@ WIKI_INDEX_PATH = WIKI_DIR / "index.json"
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _slugify(text: str) -> str:
-    """Convert text to a filesystem-safe slug."""
+def _slugify(text: str, max_length: int = 80) -> str:
+    """Convert text to a filesystem-safe slug, truncated to max_length."""
     text = unicodedata.normalize("NFKD", text)
     text = re.sub(r"[^\w\s-]", "", text.lower())
     text = re.sub(r"[\s_-]+", "-", text).strip("-")
+    if len(text) > max_length:
+        text = text[:max_length].rstrip("-")
     return text or "page"
 
 
@@ -118,7 +122,11 @@ def _parse_frontmatter(content: str) -> tuple[dict, str]:
             raw_val = val.strip()
             # Parse simple lists: [a, b, c]
             if raw_val.startswith("[") and raw_val.endswith("]"):
-                items = [x.strip().strip("\"'") for x in raw_val[1:-1].split(",") if x.strip()]
+                items = [
+                    x.strip().strip("\"'")
+                    for x in raw_val[1:-1].split(",")
+                    if x.strip()
+                ]
                 meta[key.strip()] = items
             else:
                 meta[key.strip()] = raw_val.strip("\"'")
@@ -261,22 +269,22 @@ def _render_wiki_page(meta: dict, data: dict) -> str:
 
     body = f"""
 ## Summary
-{data.get('summary', '')}
+{data.get("summary", "")}
 
 ## Key Facts
 {key_facts}
 
 ## Connections
-{connections or '_No cross-links identified yet._'}
+{connections or "_No cross-links identified yet._"}
 
 ## Memory Hooks
-{memory_hooks or '_No memory aids available._'}
+{memory_hooks or "_No memory aids available._"}
 
 ## Quick Revision
 {quick_revision}
 
 ## Sources
-{sources_list or '_Unknown_'}
+{sources_list or "_Unknown_"}
 """.strip()
 
     return f"{fm}\n\n{body}\n"
@@ -309,7 +317,9 @@ def _update_index(
                 "slug": slug,
                 "tags": tags,
                 "sources": list(set(existing_page.get("sources", []) + sources)),
-                "last_compiled": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "last_compiled": datetime.now(timezone.utc).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                ),
             }
         )
     else:
@@ -321,7 +331,9 @@ def _update_index(
                 "slug": slug,
                 "tags": tags,
                 "sources": sources,
-                "last_compiled": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "last_compiled": datetime.now(timezone.utc).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                ),
             }
         )
 
@@ -386,35 +398,130 @@ async def compile_wiki_from_ingestion(
     if not chapters_map and formatted_chapters:
         for ch in formatted_chapters:
             title = ch.get("title", topic)
-            chapters_map[title] = [{"content": ch.get("content", ""), "subtopic": title}]
+            chapters_map[title] = [
+                {"content": ch.get("content", ""), "subtopic": title}
+            ]
 
+    # First pass: prepare work items (file I/O, can't parallelize)
+    work_items = []
     for chapter_title, chunks in chapters_map.items():
         page_path = _wiki_page_path(subject, chapter_title)
         slug = _slugify(chapter_title)
 
-        # Load existing page if it exists (for merge)
         existing_meta: dict = {}
         existing_body: Optional[str] = None
         if page_path.exists():
             try:
                 existing_content = page_path.read_text(encoding="utf-8")
                 existing_meta, existing_body = _parse_frontmatter(existing_content)
-                pages_updated += 1
             except Exception:
-                pages_created += 1
+                pass
+
+        work_items.append(
+            {
+                "chapter_title": chapter_title,
+                "chunks": chunks,
+                "slug": slug,
+                "page_path": page_path,
+                "existing_meta": existing_meta,
+                "existing_body": existing_body,
+            }
+        )
+
+    # Second pass: run all LLM calls in parallel
+    async def _compile_one(item: dict) -> tuple[dict, Optional[dict]]:
+        data = await _compile_page_with_ai(
+            title=item["chapter_title"],
+            subject=subject,
+            chunks=item["chunks"],
+            existing_body=item["existing_body"],
+        )
+        return item, data
+
+    results = await asyncio.gather(*[_compile_one(item) for item in work_items])
+
+    # Third pass: save files and update index sequentially (file I/O must be ordered)
+    for item, compiled_data in results:
+        chapter_title = item["chapter_title"]
+        chunks = item["chunks"]
+        slug = item["slug"]
+        page_path = item["page_path"]
+        existing_meta = item["existing_meta"]
+        existing_body = item["existing_body"]
+
+        if existing_body is not None:
+            pages_updated += 1
         else:
             pages_created += 1
 
-        # Compile with AI
-        compiled_data = await _compile_page_with_ai(
-            title=chapter_title,
+        if not compiled_data:
+            logger.warning(
+                f"[WikiCompiler] Skipping AI for '{chapter_title}' — using fallback content"
+            )
+            raw_content = "\n\n".join([c.get("content", "") for c in chunks])
+            compiled_data = {
+                "title": chapter_title,
+                "summary": "AI compilation failed. Showing raw extracted text.",
+                "key_facts": ["Raw content included below"],
+                "connections": [],
+                "memory_hooks": [],
+                "quick_revision": ["Raw content fallback"],
+            }
+            compiled_data["summary"] += "\n\n" + raw_content[:4000]
+
+        existing_sources = existing_meta.get("sources", [])
+        if isinstance(existing_sources, str):
+            existing_sources = [existing_sources]
+        all_sources = list(set(existing_sources + [source_name]))
+
+        existing_related = existing_meta.get("related", [])
+        if isinstance(existing_related, str):
+            existing_related = [existing_related]
+        new_related = [
+            c["topic"] for c in compiled_data.get("connections", []) if c.get("topic")
+        ]
+        merged_related = _merge_related(existing_related, new_related)
+
+        meta = {
+            "title": compiled_data.get("title", chapter_title),
+            "subject": subject,
+            "topic": topic,
+            "tags": compiled_data.get("tags", []),
+            "related": merged_related,
+            "sources": all_sources,
+        }
+
+        page_content = _render_wiki_page(meta, compiled_data)
+        try:
+            page_path.write_text(page_content, encoding="utf-8")
+            logger.info(f"[WikiCompiler] Saved wiki page: {page_path.name}")
+        except Exception as e:
+            logger.error(f"[WikiCompiler] Failed to save '{chapter_title}': {e}")
+            continue
+
+        index = _update_index(
+            index=index,
             subject=subject,
-            chunks=chunks,
-            existing_body=existing_body,
+            title=compiled_data.get("title", chapter_title),
+            slug=slug,
+            tags=compiled_data.get("tags", []),
+            connections=compiled_data.get("connections", []),
+            sources=all_sources,
+        )
+
+        compiled_pages.append(
+            {
+                "title": compiled_data.get("title", chapter_title),
+                "subject": subject,
+                "slug": slug,
+                "path": str(page_path.relative_to(KB_DIR)),
+            }
         )
 
         if not compiled_data:
-            logger.warning(f"[WikiCompiler] Skipping AI for '{chapter_title}' — using fallback content")
+            logger.warning(
+                f"[WikiCompiler] Skipping AI for '{chapter_title}' — using fallback content"
+            )
             # Fallback to simple content when AI fails (e.g. rate limit)
             raw_content = "\n\n".join([c.get("content", "") for c in chunks])
             compiled_data = {
@@ -437,7 +544,9 @@ async def compile_wiki_from_ingestion(
         existing_related = existing_meta.get("related", [])
         if isinstance(existing_related, str):
             existing_related = [existing_related]
-        new_related = [c["topic"] for c in compiled_data.get("connections", []) if c.get("topic")]
+        new_related = [
+            c["topic"] for c in compiled_data.get("connections", []) if c.get("topic")
+        ]
         merged_related = _merge_related(existing_related, new_related)
 
         meta = {
@@ -503,7 +612,7 @@ def get_wiki_page(subject: str, slug: str) -> Optional[dict]:
     Return a wiki page's content and metadata by subject + slug.
     Returns None if not found.
     """
-    page_path = WIKI_DIR / _slugify(subject) / f"{slug}.md"
+    page_path = WIKI_DIR / _slugify(subject) / f"{_slugify(slug)}.md"
     if not page_path.exists():
         return None
     try:

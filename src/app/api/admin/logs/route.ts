@@ -1,3 +1,4 @@
+import "@/lib/logger"; // Ensure console logger is active
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";

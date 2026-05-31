@@ -2,8 +2,13 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import Sidebar from "@/components/Sidebar";
-import Navbar from "@/components/Navbar";
+import PageLayout from "@/components/PageLayout";
+import PageHeader from "@/components/PageHeader";
+import Card from "@/components/Card";
+import LoadingState from "@/components/LoadingState";
+import ErrorAlert from "@/components/ErrorAlert";
+import StatusBadge from "@/components/StatusBadge";
+import TabGroup from "@/components/TabGroup";
 import {
   Terminal,
   ArrowLeft,
@@ -197,69 +202,52 @@ export default function DiagnosticsPortal() {
   const filteredLines = getFilteredLogs(activeTab === "nextjs" ? logs.nextjs : logs.backend);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0b0f19]">
-      <Sidebar />
+    <PageLayout maxWidth="6xl">
+      <PageHeader
+        icon={<Terminal className="h-6 w-6 text-indigo-500" />}
+        title="Production Diagnostics Portal"
+        description="Real-time server log debugger. Troubleshoot API credentials and cloud network issues."
+      >
+        <Link
+          href="/settings"
+          className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+      </PageHeader>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar />
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <label className="flex items-center gap-2 bg-white dark:bg-[#111726] border border-slate-200 dark:border-slate-800/80 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer shadow-sm">
+          <input
+            type="checkbox"
+            checked={autoRefresh}
+            onChange={(e) => setAutoRefresh(e.target.checked)}
+            className="rounded text-indigo-500 focus:ring-indigo-500 dark:bg-slate-900 border-slate-300 dark:border-slate-700"
+          />
+          <span>Auto-Refresh (2s)</span>
+          <span className={`inline-block w-2 h-2 rounded-full ${autoRefresh ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
+        </label>
 
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-8 max-w-6xl mx-auto space-y-6">
-            
-            {/* Header / Back Navigation */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/settings"
-                  className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Link>
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                    <Terminal className="h-6 w-6 text-indigo-500" />
-                    Production Diagnostics Portal
-                  </h1>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Real-time server log debugger. Troubleshoot API credentials and cloud network issues.
-                  </p>
-                </div>
-              </div>
+        <button
+          onClick={() => fetchLogs(true)}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-white dark:bg-[#111726] border border-slate-200 dark:border-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm transition-all"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+          Refresh
+        </button>
 
-              {/* Top Controls */}
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="flex items-center gap-2 bg-white dark:bg-[#111726] border border-slate-200 dark:border-slate-800/80 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer shadow-sm">
-                  <input
-                    type="checkbox"
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                    className="rounded text-indigo-500 focus:ring-indigo-500 dark:bg-slate-900 border-slate-300 dark:border-slate-700"
-                  />
-                  <span>Auto-Refresh (2s)</span>
-                  <span className={`inline-block w-2 h-2 rounded-full ${autoRefresh ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
-                </label>
+        <button
+          onClick={handleClearLogs}
+          disabled={clearing}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-red-500/10 hover:bg-red-500/25 border border-red-500/20 text-red-500 shadow-sm transition-all"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Wipe Logs
+        </button>
+      </div>
 
-                <button
-                  onClick={() => fetchLogs(true)}
-                  disabled={loading}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-white dark:bg-[#111726] border border-slate-200 dark:border-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-sm transition-all"
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-                  Refresh
-                </button>
-
-                <button
-                  onClick={handleClearLogs}
-                  disabled={clearing}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-red-500/10 hover:bg-red-500/25 border border-red-500/20 text-red-500 shadow-sm transition-all"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Wipe Logs
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Test Console Row */}
+      {/* Quick Test Console Row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
               {/* Left Column: Diagnostics Controls & Interactive Connection Tester */}
@@ -442,9 +430,6 @@ export default function DiagnosticsPortal() {
 
             </div>
 
-          </main>
-        </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

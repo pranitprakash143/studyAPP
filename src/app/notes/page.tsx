@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import Navbar from "@/components/Navbar";
+import PageLayout from "@/components/PageLayout";
+import PageHeader from "@/components/PageHeader";
+import Card from "@/components/Card";
+import LoadingState from "@/components/LoadingState";
+import EmptyState from "@/components/EmptyState";
+import ErrorAlert from "@/components/ErrorAlert";
+import StatusBadge from "@/components/StatusBadge";
 import {
   BookOpen,
   Search,
@@ -180,58 +185,35 @@ export default function Notes() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0b0f19]">
-      <Sidebar />
+    <PageLayout>
+      <PageHeader
+        icon={<BookOpen className="h-6 w-6" />}
+        title="RAG Notes Workspace"
+        description="Synthesize high-yield custom notes, completely grounded in your master syllabus documents."
+      >
+        <button
+          onClick={() => {
+            if (viewingRaw) {
+              setViewingRaw(false);
+            } else {
+              loadRawKbText();
+            }
+          }}
+          className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-slate-900/50 transition flex items-center gap-1.5"
+        >
+          <BookMarked className="h-4 w-4" />
+          {viewingRaw ? "Hide Master Copy" : "View Master Copy"}
+        </button>
+      </PageHeader>
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar />
+      {/* Content Panel Split */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
         
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-8 max-w-7xl mx-auto flex flex-col">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-400">
-              <BookOpen className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                RAG Notes Workspace
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Synthesize high-yield custom notes, completely grounded in your master syllabus documents.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (viewingRaw) {
-                  setViewingRaw(false);
-                } else {
-                  loadRawKbText();
-                }
-              }}
-              className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-white dark:bg-[#111726] hover:bg-slate-50 dark:hover:bg-slate-900/50 transition flex items-center gap-1.5"
-            >
-              <BookMarked className="h-4 w-4" />
-              {viewingRaw ? "Hide Master Copy" : "View Master Copy"}
-            </button>
-          </div>
-        </div>
-
-        {/* Content Panel Split */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
+        {/* Left / Generator Panel */}
+        <div className="lg:col-span-2 space-y-6 flex flex-col">
           
-          {/* Left / Generator Panel */}
-          <div className="lg:col-span-2 space-y-6 flex flex-col">
-            
-            {/* Note Synthesis Form */}
-            <form
-              onSubmit={handleGenerateNotes}
-              className="bg-white dark:bg-[#111726] rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6"
-            >
+          {/* Note Synthesis Form */}
+            <form onSubmit={handleGenerateNotes} className="bg-white dark:bg-[#111726] rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm p-6">
               <div className="flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1 flex flex-col gap-1.5 w-full">
                   <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -318,7 +300,15 @@ export default function Notes() {
                           return <h1 key={idx} className="text-2xl font-bold text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-800 pb-2 mt-6 mb-4">{line.replace("# ", "")}</h1>;
                         }
                         if (line.startsWith("## ")) {
-                          return <h2 key={idx} className="text-lg font-bold text-slate-900 dark:text-white mt-5 mb-3">{line.replace("## ", "")}</h2>;
+                          const title = line.replace("## ", "").replace("Topic:", "").trim();
+                          return (
+                            <div key={idx} className="relative my-8 pt-8 pb-3 border-t border-dashed border-slate-200 dark:border-slate-800/80 w-full select-none">
+                              <div className="absolute -top-3.5 left-4 flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-500 border border-indigo-500/25">
+                                📖 Chapter Section
+                              </div>
+                              <h2 className="text-base font-bold text-slate-900 dark:text-white mt-2 mb-1">{title}</h2>
+                            </div>
+                          );
                         }
                         if (line.startsWith("### ")) {
                           return <h3 key={idx} className="text-sm font-bold text-slate-800 dark:text-white mt-4 mb-2">{line.replace("### ", "")}</h3>;
@@ -437,10 +427,7 @@ export default function Notes() {
 
           </div>
 
-        </div>
-      </main>
-        </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

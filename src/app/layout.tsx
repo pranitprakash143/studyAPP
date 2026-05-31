@@ -1,6 +1,8 @@
+import "@/lib/logger"; // Global console logs redirect server-side
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AIConfigProvider } from "@/contexts/AIConfigContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,7 +60,9 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans h-full transition-colors duration-250`}>
-        {children}
+        <AIConfigProvider>
+          {children}
+        </AIConfigProvider>
       </body>
     </html>
   );

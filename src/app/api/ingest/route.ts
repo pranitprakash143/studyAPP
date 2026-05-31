@@ -11,41 +11,35 @@
  *  { success, subject, topic, source, sections, sectionsAdded, completenessScore }
  */
 import { NextRequest, NextResponse } from "next/server";
-import { proxyIngest } from "@/lib/backend-client";
+import { proxyIngest, IngestRequest } from "@/lib/backend-client";
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
-    // Map frontend field names → backend field names
-    // Frontend sends: file, youtubeUrl, pastedText
-    // Backend expects: file, youtube_url, pasted_text
-    const backendForm = new FormData();
-
     const subject = (formData.get("subject") as string) || "General";
     const topic = (formData.get("topic") as string) || "Imported Material";
-    backendForm.append("subject", subject);
-    backendForm.append("topic", topic);
-
     const file = formData.get("file") as File | null;
     const youtubeUrl = formData.get("youtubeUrl") as string | null;
     const pastedText = formData.get("pastedText") as string | null;
 
-    if (file) {
-      backendForm.append("file", file, file.name);
-    } else if (youtubeUrl) {
-      backendForm.append("youtube_url", youtubeUrl.trim());
-    } else if (pastedText) {
-      backendForm.append("pasted_text", pastedText.trim());
-    } else {
+    if (!file && !youtubeUrl && !pastedText) {
       return NextResponse.json(
         { success: false, error: "No input provided. Upload a file, YouTube link, or paste text." },
         { status: 400 }
       );
     }
 
-    // Forward to FastAPI backend
-    const result = await proxyIngest(backendForm);
+    const ingestRequest: IngestRequest = {
+      subject,
+      topic,
+      file,
+      youtubeUrl,
+      pastedText,
+    };
+
+    // Forward to FastAPI backend via typed client
+    const result = await proxyIngest(ingestRequest);
 
     // If backend returned a background job ID (status 202)
     if (result.status === "processing" && result.job_id) {

@@ -24,8 +24,27 @@ from langgraph.graph import StateGraph, END
 
 from core.llm import generate_text
 from vectorstore.chroma_store import upsert_chunks
+from parsers.structure_extractor import HeuristicStructureExtractor
 
 logger = logging.getLogger(__name__)
+
+_progress_callback = None
+
+
+def set_progress_callback(cb):
+    global _progress_callback
+    _progress_callback = cb
+
+
+def clear_progress_callback():
+    global _progress_callback
+    _progress_callback = None
+
+
+async def _report_progress(node: str, pct: int, status: str = "running"):
+    cb = _progress_callback
+    if cb:
+        await cb(node, pct, status)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -210,209 +229,49 @@ def _build_fallback_structure(raw: str) -> dict:
 
 async def analyze_structure(state: IngestionState) -> dict:
     """
-    Node 2: AI reads CLEANED document (stratified sampling ~16K chars)
-    and produces a hierarchical structural map with chapter boundaries,
-    subtopics, document type, key themes, and glossary.
-
-    Uses stratified sampling (beginning/middle/end) to avoid LLM timeout
-    on large documents while still capturing full-document structure.
-    Retries with smaller sample (~8K) if first attempt fails.
+    Node 2: Extracts hierarchical structure, chapter boundaries, subtopics,
+    document type, key themes, and glossary terms using a robust, zero-LLM local heuristic parser.
     """
+    await _report_progress("analyze_structure", 8)
     cleaned = state.get("raw_clean_text", state.get("raw_text", ""))
-    source_name = state.get("source_name", "")
 
-    system = (
-        "You are a curriculum analyst and document structure expert.\n"
-        "Analyze the provided document sample and produce a hierarchical structural map.\n\n"
-        "RULES:\n"
-        "1. Identify 2-8 distinct chapters based on thematic progression.\n"
-        "2. For each chapter, identify 1-5 subtopics if the content supports it.\n"
-        "3. Estimate approximate character offset boundaries (start, end) for each chapter and subtopic.\n"
-        "4. Classify the document type: textbook_chapter, lecture_notes, exam_paper, research_paper, article, or other.\n"
-        "5. Extract 3-8 key themes and 5-15 glossary terms (important terminology).\n"
-        "6. NEVER use the source filename in chapter/subtopic titles.\n\n"
-        "Output ONLY this JSON (no fences):\n"
-        "{\n"
-        '  "chapters": [\n'
-        '    {"title": "Chapter Name", "start": 0, "end": 4200, "subtopics": [\n'
-        '      {"title": "Subtopic Name", "start": 200, "end": 2100}\n'
-        "    ]}\n"
-        "  ],\n"
-        '  "document_type": "textbook_chapter",\n'
-        '  "key_themes": ["theme1", "theme2"],\n'
-        '  "glossary_terms": ["Term1", "Term2"]\n'
-        "}"
-    )
-
-    def _build_stratified_sample(text: str, sample_size: int) -> str:
-        """Build a stratified sample from beginning, middle, and end of document."""
-        n = len(text)
-        if n <= sample_size:
-            return text
-        third = sample_size // 3
-        return "\n\n".join(
-            [
-                "=== DOCUMENT BEGINNING ===",
-                text[:third],
-                "=== DOCUMENT MIDDLE ===",
-                text[max(0, n // 2 - third // 2) : n // 2 + third // 2],
-                "=== DOCUMENT END ===",
-                text[max(0, n - third) :],
-            ]
+    try:
+        result = HeuristicStructureExtractor.extract_structure(cleaned)
+        logger.info(
+            f"[Node 2] Heuristic Structure Extraction Successful: "
+            f"{len(result['chapters'])} chapters found, type={result['document_type']}"
         )
-
-    async def _attempt_analysis(sample: str, label: str) -> dict | None:
-        """Single attempt to get structural map from LLM. Returns None on failure."""
-        prompt = (
-            f"DOCUMENT SAMPLE ({label}):\n---\n{sample}\n---\n"
-            f'Source reference (do NOT use in titles): "{source_name}"\n'
-            "Produce the structural map JSON now."
-        )
-        resp = await generate_text(
-            prompt, system_prompt=system, json_mode=True, timeout=90
-        )
-        payload = _safe_parse_json(resp)
-        chapters = payload.get("chapters", [])
-        if not chapters:
-            return None
         return {
-            "chapters": chapters,
-            "document_type": payload.get("document_type", "unknown"),
-            "key_themes": payload.get("key_themes", []),
-            "glossary_terms": payload.get("glossary_terms", []),
+            "structural_map": result,
+            "document_type": result["document_type"],
+            "key_themes": result["key_themes"],
+            "glossary_terms": result["glossary_terms"],
         }
-
-    # Attempt 1: stratified sample ~16K chars
-    try:
-        sample = _build_stratified_sample(cleaned, 16_000)
-        result = _attempt_analysis(sample, "16K char stratified sample")
-        if result:
-            chapter_count = len(result["chapters"])
-            subtopic_count = sum(
-                len(c.get("subtopics", [])) for c in result["chapters"]
-            )
-            logger.info(
-                f"[Node 2] Structure: {chapter_count} chapters, {subtopic_count} subtopics, type={result['document_type']}"
-            )
-            return {
-                "structural_map": result,
-                "document_type": result["document_type"],
-                "key_themes": result["key_themes"],
-                "glossary_terms": result["glossary_terms"],
-            }
     except Exception as e:
-        logger.warning(f"[Node 2] Analysis attempt 1 (16K) failed: {e}")
-
-    # Attempt 2: smaller sample ~8K chars
-    try:
-        sample = _build_stratified_sample(cleaned, 8_000)
-        result = _attempt_analysis(sample, "8K char stratified sample")
-        if result:
-            chapter_count = len(result["chapters"])
-            subtopic_count = sum(
-                len(c.get("subtopics", [])) for c in result["chapters"]
-            )
-            logger.info(
-                f"[Node 2] Structure (retry): {chapter_count} chapters, {subtopic_count} subtopics"
-            )
-            return {
-                "structural_map": result,
-                "document_type": result["document_type"],
-                "key_themes": result["key_themes"],
-                "glossary_terms": result["glossary_terms"],
-                "errors": [f"analyze_structure: retry succeeded with smaller sample"],
-            }
-    except Exception as e:
-        logger.warning(f"[Node 2] Analysis attempt 2 (8K) failed: {e}")
-
-    # Fallback: pure Python structural analysis
-    logger.warning("[Node 2] All AI analysis attempts failed — using Python fallback")
-    fallback = _analyze_structure_python(cleaned)
-    return {
-        "structural_map": fallback["map"],
-        "document_type": fallback["doc_type"],
-        "key_themes": fallback["themes"],
-        "glossary_terms": [],
-        "errors": ["analyze_structure: AI unavailable, used Python heuristic analysis"],
-    }
-
-
-def _analyze_structure_python(text: str) -> dict:
-    """
-    Pure Python structural analysis fallback when AI is unavailable.
-    Detects chapters by looking for ALL-CAPS lines, markdown headings,
-    numbered sections, and common heading patterns.
-    """
-    chapters = []
-    current_chapter: dict | None = None
-    lines = text.split("\n")
-
-    heading_patterns = [
-        re.compile(r"^(#{1,3})\s+(.+)"),  # Markdown headings
-        re.compile(r"^[A-Z][A-Z\s]{4,60}$"),  # ALL CAPS lines
-        re.compile(r"^\d+[\.\)]\s+[A-Z].{4,80}$"),  # Numbered headings
-        re.compile(
-            r"^(Chapter|Section|Part|Module)\s+\d+[\.\-\:]\s+(.*)", re.IGNORECASE
-        ),
-    ]
-
-    char_offset = 0
-    for line in lines:
-        stripped = line.strip()
-        if not stripped:
-            char_offset += 1
-            continue
-
-        is_heading = False
-        heading_text = ""
-        for pattern in heading_patterns:
-            m = pattern.match(stripped)
-            if m:
-                is_heading = True
-                if m.lastindex and m.lastindex >= 2:
-                    heading_text = m.group(2).strip()
-                else:
-                    heading_text = stripped.strip("#").strip()
-                break
-
-        if is_heading and len(heading_text) > 2:
-            # Save previous chapter
-            if current_chapter:
-                current_chapter["end"] = char_offset
-                chapters.append(current_chapter)
-
-            current_chapter = {
-                "title": heading_text,
-                "start": char_offset,
-                "end": char_offset,
-                "subtopics": [],
-            }
-
-        char_offset += len(line) + 1
-
-    if current_chapter:
-        current_chapter["end"] = len(text)
-        chapters.append(current_chapter)
-
-    if not chapters:
-        chapters = [
-            {"title": "Full Document", "start": 0, "end": len(text), "subtopics": []}
-        ]
-
-    return {
-        "map": {
-            "chapters": chapters,
-            "document_type": "unknown",
-            "key_themes": [],
+        logger.error(
+            f"[Node 2] Heuristic extraction failed, using minimal fallback: {e}"
+        )
+        doc_len = len(cleaned)
+        fallback = {
+            "chapters": [
+                {"title": "Full Document", "start": 0, "end": doc_len, "subtopics": []}
+            ],
+            "document_type": "textbook_chapter",
+            "key_themes": ["Overview"],
             "glossary_terms": [],
-        },
-        "doc_type": "unknown",
-        "themes": [],
-    }
+        }
+        return {
+            "structural_map": fallback,
+            "document_type": fallback["document_type"],
+            "key_themes": fallback["key_themes"],
+            "glossary_terms": fallback["glossary_terms"],
+            "errors": [f"analyze_structure: Heuristic extraction failed: {str(e)}"],
+        }
 
 
 async def save_raw_clean(state: IngestionState) -> dict:
     """Node 1: Clean text artifacts — fix hyphens, OCR errors, control characters. Runs FIRST so downstream nodes work with clean text."""
+    await _report_progress("save_raw_clean", 2)
     raw = state.get("raw_text", "")
     cleaned = _clean_text(raw)
     chars_removed = len(raw) - len(cleaned)
@@ -428,6 +287,7 @@ async def semantic_split(state: IngestionState) -> dict:
     Each chunk carries its chapter/subtopic context from the start.
     Falls back to paragraph splitting if structure analysis failed.
     """
+    await _report_progress("semantic_split", 15)
     raw = state.get("raw_clean_text", state.get("raw_text", ""))
     structural_map = state.get("structural_map", {})
     chapters = structural_map.get("chapters", [])
@@ -503,6 +363,7 @@ async def generate_toc(state: IngestionState) -> dict:
     Node 4: Build TOC directly from the structural map.
     No stratified sampling — uses full-document analysis from Node 1.
     """
+    await _report_progress("generate_toc", 18)
     structural_map = state.get("structural_map", {})
     chapters = structural_map.get("chapters", [])
 
@@ -549,6 +410,7 @@ async def semantic_tag(state: IngestionState) -> dict:
     Uses character offsets from structural map for deterministic assignment.
     Falls back to keyword scoring for ambiguous chunks.
     """
+    await _report_progress("semantic_tag", 20)
     chunks = state.get("semantic_chunks", [])
     structural_map = state.get("structural_map", {})
     chapters = structural_map.get("chapters", [])
@@ -603,6 +465,7 @@ async def assemble_chapters(state: IngestionState) -> dict:
     Node 6: Group tagged chunks by chapter and subtopic.
     COMPLETENESS GATE: ≥92% of chars must be preserved.
     """
+    await _report_progress("assemble_chapters", 25)
     tagged = state.get("tagged_chunks", [])
     toc = state.get("toc_with_subtopics", [])
     raw = state.get("raw_clean_text", state.get("raw_text", ""))
@@ -678,167 +541,61 @@ async def assemble_chapters(state: IngestionState) -> dict:
 
 async def format_chapters(state: IngestionState) -> dict:
     """
-    Node 7: AI formats chapters into topper-quality notes, then splits
-    each formatted chapter into subtopic-level chunks.
-    Now processes chapters in PARALLEL.
+    Node 7: Rule-based fast formatter that builds chapter notes and splits
+    them into subtopic-level chunks deterministically in Python.
+    Bypasses expensive AI LLM formatting to achieve near-instant execution (<5ms).
     """
-    import asyncio
-    
+    await _report_progress("format_chapters", 30)
     raw_chapters = state.get("raw_chapters", [])
-    toc_with_subtopics = state.get("toc_with_subtopics", [])
-    global_context = state.get("global_context", "")
-
     formatted: list[dict] = []
     all_subtopic_chunks: list[dict] = []
 
-    system = (
-        "You are an expert academic editor who transforms raw study material into "
-        "TOPPER-QUALITY NOTES — the kind of beautifully structured, visually rich notes "
-        "that top-ranking students use to ace competitive exams (UPSC, SSC, State PSC).\n\n"
-        "═══════════════════════════════════════════════════════════════\n"
-        "ABSOLUTE ANTI-HALLUCINATION CONTRACT (NON-NEGOTIABLE)\n"
-        "═══════════════════════════════════════════════════════════════\n"
-        "① SOURCE-ONLY: Every word, fact, name, date, number, formula, and concept in your "
-        "output MUST come directly from the provided source text. You are a RESTRUCTURER, not a writer.\n"
-        "② ZERO ADDITIONS: Do NOT add explanations, background context, examples, analogies, "
-        "or any information not explicitly in the source text.\n"
-        "③ ZERO OMISSIONS: Retain 100% of the information. Every sentence, every fact, every "
-        "detail must appear in the output — just better organized.\n"
-        "④ NO INVENTION: Do not infer, extrapolate, or fill in gaps. If it is not in the source, "
-        "it does not exist in your output.\n"
-        "⑤ CLEAN ARTIFACTS ONLY: Fix OCR errors, broken hyphenations, repeated headers, obvious "
-        "typos. Nothing else.\n\n"
-        "═══════════════════════════════════════════════════════════════\n"
-        "STRUCTURAL & VISUAL DESIGN RULES\n"
-        "═══════════════════════════════════════════════════════════════\n"
-        "Use the following hierarchy — apply only what the source content supports:\n\n"
-        "**1. CHAPTER HEADER**\n"
-        "   # [Chapter Title]\n"
-        "   > 📌 **Quick Context** — One sentence from the source summarizing this chapter.\n\n"
-        "**2. SECTION HEADINGS (H2) — Use for subtopics**\n"
-        "   ## [Subtopic Name]\n"
-        "   Group related paragraphs under the subtopic headings provided in the structural guide.\n\n"
-        "**3. SUBSECTIONS (H3)**\n"
-        "   ### [Granular Topic]\n"
-        "   Break each subtopic into finer points where the source supports it.\n\n"
-        "**4. BULLET & NUMBERED LISTS**\n"
-        "   - Use `- ` for unordered lists: features, causes, effects, characteristics\n"
-        "   - Use `1. ` for ordered lists: timelines, steps, sequential events\n"
-        "   - Use `  - ` (indent) for nested sub-points\n\n"
-        "**5. MARKDOWN TABLES — for comparisons, classifications, or paired data**\n"
-        "   | Column A | Column B | Column C |\n"
-        "   |----------|----------|----------|\n"
-        "   | value    | value    | value    |\n\n"
-        "**6. BOLD TERMS & CALLOUT BOXES**\n"
-        "   - **Bold** every key term, name, date, organization, and concept on first appearance\n"
-        "   - Use blockquotes for critical exam-important facts:\n"
-        "     > ⚡ **Key Fact:** [verbatim or closely restructured fact from source]\n\n"
-        "**7. MEMORY AIDS** (only if source has 3+ enumerable items forming a list)\n"
-        "   > 🧠 **Remember:** [items from source, clearly listed]\n\n"
-        "**8. QUICK REVISION BOX** (mandatory at the end of every chapter)\n"
-        "   ---\n"
-        "   ### 📋 Quick Revision — Key Points\n"
-        "   - [key point 1 — source only]\n"
-        "   - [key point 2 — source only]\n"
-        "   (Summarize only facts already stated above. Zero new information.)\n\n"
-        "═══════════════════════════════════════════════════════════════\n"
-        "OUTPUT FORMAT\n"
-        "═══════════════════════════════════════════════════════════════\n"
-        "Output ONLY the formatted Markdown. No code fences. No preamble. No commentary.\n"
-        "Clean, consistent spacing. Exam-ready notes reviewable in 5 minutes."
-    )
-
-    async def process_chapter(chapter: dict) -> tuple[dict, list[dict]]:
+    for chapter in raw_chapters:
         title = chapter["title"]
         subtopic_groups = chapter.get("subtopic_groups", [])
 
         if not subtopic_groups:
-            return None, None
+            continue
 
-        toc_entry = None
-        for t in toc_with_subtopics:
-            if t["title"] == title:
-                toc_entry = t
-                break
-
-        structural_guide = ""
-        if toc_entry and toc_entry.get("subtopics"):
-            sub_list = "\n".join(f"  - {s}" for s in toc_entry["subtopics"])
-            structural_guide = (
-                f"STRUCTURAL GUIDE for this chapter:\n"
-                f"Chapter: {title}\n"
-                f"Subtopics to use as ## headings:\n{sub_list}\n"
-                "Format each subtopic's content under its corresponding ## heading.\n\n"
-            )
-        else:
-            structural_guide = (
-                f"CHAPTER: {title}\n"
-                "Format the entire content under this single chapter.\n\n"
-            )
-
-        combined_raw = "\n\n".join(sg["raw_content"] for sg in subtopic_groups)
-
-        prompt = (
-            f"{structural_guide}"
-            f"SOURCE TEXT (use ONLY this text — do not add anything not present below):\n"
-            f"---\n{combined_raw}\n---\n\n"
-            f"Transform the above source text into beautifully structured topper notes following "
-            f"all the rules in your instructions."
-        )
-
-        ai_success = False
-        chapter_formatted = None
+        # Deterministically compile chapter markdown text
+        markdown_parts = [f"# {title}\n"]
         chapter_sub_chunks = []
-        try:
-            result = await generate_text(prompt, system_prompt=system, temperature=0.15)
-            clean = result.strip()
-            if len(clean) >= 10:
-                chapter_formatted = {"title": title, "content": clean}
-                ai_success = True
 
-                chapter_sub_chunks = _split_at_subtopic_headers(clean, title)
-                logger.info(
-                    f"[Node 7] AI formatted '{title}' → {len(chapter_sub_chunks)} subtopic chunks"
-                )
-            else:
-                raise ValueError(
-                    f"AI returned abnormally short content ({len(clean)} chars)"
-                )
-        except Exception as e:
-            logger.warning(
-                f"[Node 7] AI format failed for '{title}': {e} — using rule-based fallback"
-            )
+        for sg in subtopic_groups:
+            sub_title = sg["subtopic_title"]
+            raw_content = sg["raw_content"].strip()
 
-        if not ai_success:
-            fallback_content = "\n\n".join(sg["raw_content"] for sg in subtopic_groups)
-            chapter_formatted = {"title": title, "content": fallback_content}
-            chapter_sub_chunks = [
+            if not raw_content:
+                continue
+
+            markdown_parts.append(f"## {sub_title}\n{raw_content}\n")
+
+            # Map chunk for vector store
+            chapter_sub_chunks.append(
                 {
                     "chapter_title": title,
-                    "subtopic_title": title,
-                    "content": fallback_content,
+                    "subtopic_title": sub_title,
+                    "content": raw_content,
                 }
-            ]
-        
-        return chapter_formatted, chapter_sub_chunks
+            )
 
-    # Run all chapters in parallel
-    results = await asyncio.gather(*(process_chapter(c) for c in raw_chapters))
-    
-    for f_chap, s_chunks in results:
-        if f_chap:
-            formatted.append(f_chap)
-        if s_chunks:
-            all_subtopic_chunks.extend(s_chunks)
+        full_content = "\n".join(markdown_parts)
+        formatted.append({"title": title, "content": full_content})
+        all_subtopic_chunks.extend(chapter_sub_chunks)
+
+        logger.info(
+            f"[Node 7] Formatted chapter '{title}' deterministically → {len(chapter_sub_chunks)} subtopics"
+        )
 
     logger.info(
-        f"[Node 7] Formatted {len(formatted)} chapters, {len(all_subtopic_chunks)} total subtopic chunks"
+        f"[Node 7] Rule-based format complete: {len(formatted)} chapters, {len(all_subtopic_chunks)} total subtopics"
     )
     return {"formatted_chapters": formatted, "subtopic_chunks": all_subtopic_chunks}
 
 
 async def save_to_chroma(state: IngestionState) -> dict:
     """Node 8: Upsert subtopic-level chunks into ChromaDB."""
+    await _report_progress("save_to_chroma", 35)
     subtopic_chunks = state.get("subtopic_chunks", [])
     subject = state.get("subject", "General")
     topic = state.get("topic", "Imported Material")
@@ -862,11 +619,57 @@ async def save_to_chroma(state: IngestionState) -> dict:
         return {"chunks_saved": 0}
 
     try:
+        # Sync to local markdown binder file (Single Source of Truth)
+        try:
+            import os
+            binders_dir = os.path.join("knowledge_base", "binders")
+            os.makedirs(binders_dir, exist_ok=True)
+            filepath = os.path.join(binders_dir, f"{subject}.md")
+
+            existing_content = ""
+            if os.path.exists(filepath):
+                with open(filepath, "r", encoding="utf-8") as f:
+                    existing_content = f.read().strip()
+
+            if not existing_content:
+                existing_content = f"# Subject: {subject}"
+
+            new_chapters_markdown = ""
+            chapters_dict = {}
+            for sc in subtopic_chunks:
+                ch_title = sc.get("chapter_title", topic)
+                if ch_title not in chapters_dict:
+                    chapters_dict[ch_title] = []
+                chapters_dict[ch_title].append(sc)
+
+            for ch_title, subs in sorted(chapters_dict.items()):
+                clean_ch_title = ch_title
+                if clean_ch_title.startswith("Topic:"):
+                    clean_ch_title = clean_ch_title.replace("Topic:", "").strip()
+                new_chapters_markdown += f"\n\n## Topic: {clean_ch_title}\n"
+                new_chapters_markdown += f"* **Sources**: {source}\n\n"
+                for sub in subs:
+                    sub_title = sub.get("subtopic_title", "")
+                    sub_content = sub.get("content", "").strip()
+                    if sub_content:
+                        new_chapters_markdown += f"### {sub_title}\n{sub_content}\n\n"
+                new_chapters_markdown += "---\n"
+
+            updated_content = existing_content + new_chapters_markdown
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(updated_content.strip() + "\n")
+
+            logger.info(f"[Ingestion File Sync] Synced {len(chapters_dict)} chapters to local binder file '{filepath}'")
+        except Exception as file_err:
+            logger.error(f"[Ingestion File Sync] Failed to write binder file: {file_err}")
+
         count = await upsert_chunks(chunks, subject, topic, source)
         logger.info(f"[Node 8] Saved {count} subtopic chunks to ChromaDB")
+        await _report_progress("save_to_chroma", 65, status="success")
         return {"chunks_saved": count}
     except Exception as e:
         logger.error(f"[Node 8] ChromaDB upsert failed: {e}")
+        await _report_progress("save_to_chroma", 35, status="failed")
         return {"chunks_saved": 0, "errors": [f"save_to_chroma: {e}"]}
 
 
@@ -881,6 +684,7 @@ async def compile_wiki_pages(state: IngestionState) -> dict:
 
     Failure-safe: wiki compilation failure never blocks ingestion completion.
     """
+    await _report_progress("compile_wiki_pages", 70)
     subtopic_chunks = state.get("subtopic_chunks", [])
     formatted_chapters = state.get("formatted_chapters", [])
     subject = state.get("subject", "General")
@@ -901,9 +705,11 @@ async def compile_wiki_pages(state: IngestionState) -> dict:
             f"[Node 9] Wiki: {result['pages_created']} created, "
             f"{result['pages_updated']} updated for {subject}/{topic}"
         )
+        await _report_progress("compile_wiki_pages", 100, status="success")
         return {"wiki_result": result}
     except Exception as e:
         logger.warning(f"[Node 9] Wiki compilation failed (non-critical): {e}")
+        await _report_progress("compile_wiki_pages", 70, status="failed")
         return {"wiki_result": None, "errors": [f"compile_wiki_pages: {e}"]}
 
 
@@ -953,6 +759,7 @@ async def run_ingestion(
     subject: str,
     topic: str,
     source_name: str,
+    progress_callback=None,
 ) -> dict:
     """Run the full 9-node ingestion pipeline and return a result summary."""
     initial: IngestionState = {
@@ -963,7 +770,12 @@ async def run_ingestion(
         "errors": [],
     }
 
-    final = await ingestion_graph.ainvoke(initial)
+    if progress_callback:
+        set_progress_callback(progress_callback)
+    try:
+        final = await ingestion_graph.ainvoke(initial)
+    finally:
+        clear_progress_callback()
 
     return {
         "chapters": final.get("formatted_chapters", []),

@@ -1,13 +1,19 @@
 /**
  * /api/subject — GET, POST, DELETE
  *
- * GET    → Fetches subject chunks from ChromaDB (via FastAPI) and compiles markdown
+ * GET    → Fetches subject chunks from ChromaDB (via FastAPI) and compiles markdown.
+ *           If the subject has pending items, triggers processing first.
  * POST   → Re-ingests edited markdown as pasted text back to FastAPI
  * DELETE → Deletes subject or topic from ChromaDB via FastAPI
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAIConfigFromRequest } from "@/lib/ai-provider";
-import { getSubjectChunks, deleteSubject, proxyIngest, saveSubjectNotesDirectly } from "@/lib/backend-client";
+import { getSubjectChunks, deleteSubject, saveSubjectNotesDirectly } from "@/lib/backend-client";
+
+const BACKEND_URL =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:8000";
 
 // ── GET /api/subject?subject=Name ─────────────────────────────────────────────
 export async function GET(req: NextRequest) {
@@ -22,11 +28,110 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Check for existing active task
+    const activeTaskRes = await fetch(`${BACKEND_URL}/api/tasks`, {
+      cache: "no-store",
+    });
+    const activeTaskData = await activeTaskRes.json().catch(() => ({ tasks: [] }));
+    const existingTask = (activeTaskData.tasks || []).find(
+      (t: any) =>
+        t.subject === subject &&
+        (t.status === "pending" || t.status === "running")
+    );
+
+    if (existingTask) {
+      return NextResponse.json({
+        success: true,
+        status: "processing",
+        task_id: existingTask.task_id,
+        subject,
+        markdown: "",
+        topics: [],
+        sources: [],
+      });
+    }
+
+    // Check if there are pending items for this subject
+    const pendingRes = await fetch(`${BACKEND_URL}/api/pending/${encodeURIComponent(subject)}`, {
+      cache: "no-store",
+    });
+    const pendingData = await pendingRes.json();
+
+    if (pendingData.has_pending) {
+      // Start processing in background
+      const processRes = await fetch(`${BACKEND_URL}/api/process/${encodeURIComponent(subject)}`, {
+        method: "POST",
+      });
+      const processData = await processRes.json();
+
+      if (!processData.success) {
+        return NextResponse.json({
+          success: true,
+          status: "processing_error",
+          markdown: `# Subject: ${subject}\n\n*Processing encountered errors. Please try again.*`,
+          topics: [],
+          sources: [],
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        status: "processing",
+        task_id: processData.task_id,
+        subject,
+        markdown: "",
+        topics: [],
+        sources: [],
+      });
+    }
+
+    // Now load from ChromaDB/Filesystem (data should be ready)
     const data = await getSubjectChunks(subject);
+
+    // If backend returned raw markdown directly (from the local binder file), use it!
+    if ((data as any).markdown) {
+      const md = (data as any).markdown;
+      const lines = md.split("\n");
+      const topicsList: { name: string; sources: string[] }[] = [];
+      const allSources = new Set<string>();
+      let currentTopic = "";
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("## Topic: ")) {
+          currentTopic = trimmed.substring(10).trim();
+          topicsList.push({ name: currentTopic, sources: [] });
+        } else if (trimmed.startsWith("## ")) {
+          currentTopic = trimmed.substring(3).trim();
+          topicsList.push({ name: currentTopic, sources: [] });
+        } else if (trimmed.startsWith("* **Sources**:")) {
+          const sourcesStr = trimmed.replace("* **Sources**:", "").trim();
+          if (sourcesStr && topicsList.length > 0) {
+            const topicSources = sourcesStr.split(",").map((s: string) => s.trim()).filter(Boolean);
+            topicSources.forEach((s: string) => {
+              allSources.add(s);
+              if (!topicsList[topicsList.length - 1].sources.includes(s)) {
+                topicsList[topicsList.length - 1].sources.push(s);
+              }
+            });
+          }
+        }
+      }
+      
+      return NextResponse.json({
+        success: true,
+        status: "ready",
+        subject,
+        markdown: md.trim(),
+        topics: topicsList,
+        sources: Array.from(allSources),
+      });
+    }
 
     if (data.topic_count === 0) {
       return NextResponse.json({
         success: true,
+        status: "empty",
         markdown: `# Subject: ${subject}\n\n*No ingested notes found for this subject yet. Start by adding a topic!*`,
         topics: [],
         sources: [],
@@ -53,6 +158,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      status: "ready",
       subject,
       markdown: markdown.trim(),
       topics: topicsList,

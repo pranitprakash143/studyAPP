@@ -47,6 +47,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Connection test failed:", error);
+    if (error.cause) {
+      console.error("[Test Connection API] Underlying fetch error cause:", error.cause);
+    }
     return NextResponse.json(
       {
         success: false,

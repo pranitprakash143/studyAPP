@@ -15,6 +15,9 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import LoadingState from "@/components/LoadingState";
+import EmptyState from "@/components/EmptyState";
+import StatusBadge from "@/components/StatusBadge";
 import {
   Network,
   Search,
@@ -199,6 +202,8 @@ function renderMarkdown(
 
 
 import ReactFlowGraph from "@/components/ReactFlowGraph";
+import GraphErrorBoundary from "@/components/GraphErrorBoundary";
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Page
@@ -392,7 +397,7 @@ export default function WikiPage() {
         <div className="flex-1 overflow-hidden flex flex-col">
           {loading ? (
             <div className="flex-1 flex items-center justify-center">
-              <Loader2 className="h-6 w-6 text-indigo-400 animate-spin" />
+              <LoadingState message="Loading wiki pages..." size="sm" />
             </div>
           ) : error ? (
             <div className="p-4 flex items-start gap-2 text-red-400 text-xs">
@@ -401,17 +406,11 @@ export default function WikiPage() {
             </div>
           ) : filteredPages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <div className="p-4 rounded-2xl bg-indigo-500/10 mb-4">
-                <FileText className="h-8 w-8 text-indigo-400" />
-              </div>
-              <p className="text-sm font-semibold text-slate-300 mb-1">
-                {pages.length === 0 ? "No wiki pages yet" : "No pages match"}
-              </p>
-              <p className="text-xs text-slate-500">
-                {pages.length === 0
-                  ? "Upload study materials to auto-compile wiki pages"
-                  : "Try a different search or subject filter"}
-              </p>
+              <EmptyState
+                icon={<FileText className="h-8 w-8 text-indigo-400" />}
+                title={pages.length === 0 ? "No wiki pages yet" : "No pages match"}
+                description={pages.length === 0 ? "Upload study materials to auto-compile wiki pages" : "Try a different search or subject filter"}
+              />
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto py-2">
@@ -550,7 +549,7 @@ export default function WikiPage() {
             <div className="flex-1 overflow-y-auto px-8 py-6">
               {pageLoading ? (
                 <div className="flex items-center justify-center py-20">
-                  <Loader2 className="h-6 w-6 text-indigo-400 animate-spin" />
+                  <LoadingState message="Loading page..." size="sm" />
                 </div>
               ) : (
                 <article className="max-w-3xl">
@@ -562,13 +561,15 @@ export default function WikiPage() {
         ) : view === "graph" && graph ? (
           /* Graph view taking up full right panel */
           <div className="flex-1 relative bg-[#0a0f1c]">
-            <ReactFlowGraph
-              nodes={graph.nodes}
-              edges={graph.edges}
-              selectedId={selectedNodeId}
-              onNodeClick={handleNodeClick}
-              subjectColor={subjectColor}
-            />
+            <GraphErrorBoundary>
+              <ReactFlowGraph
+                nodes={graph.nodes}
+                edges={graph.edges}
+                selectedId={selectedNodeId}
+                onNodeClick={handleNodeClick}
+                subjectColor={subjectColor}
+              />
+            </GraphErrorBoundary>
             <div className="absolute bottom-6 left-6 flex gap-4 text-xs font-semibold text-slate-400 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700/50 backdrop-blur-md shadow-lg shadow-black/50 z-10">
               <span className="flex items-center gap-1.5"><FileText className="h-4 w-4 text-indigo-400" /> {graph.node_count} Pages</span>
               <span className="w-px bg-slate-700"></span>

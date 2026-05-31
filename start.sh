@@ -141,6 +141,28 @@ check_cmd "docker-compose" "brew install docker-compose"
 check_cmd "node"         "https://nodejs.org/"
 check_cmd "npm"          "bundled with Node.js"
 
+# Check Node.js version meets Next.js 16 requirement (>= 20.9.0)
+NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
+if [[ "$NODE_VERSION" -lt 20 ]]; then
+  log_error "Node.js $(node -v) is too old. Next.js 16 requires >= 20.9.0."
+
+  # Try nvm
+  if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
+    log_step "Attempting to switch via nvm..."
+    source "$HOME/.nvm/nvm.sh"
+    nvm use 20 2>/dev/null || nvm install 20 2>/dev/null || true
+    NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
+  fi
+
+  if [[ "$NODE_VERSION" -lt 20 ]]; then
+    log_error "Could not switch to Node.js 20+. Please run: nvm install 20 && nvm use 20"
+    exit 1
+  fi
+  log_ok "Switched to $(node -v)"
+else
+  log_ok "Node.js $(node -v) (✓ meets >= 20.9.0 requirement)"
+fi
+
 # Check Docker daemon is actually running
 if ! docker info &>/dev/null; then
   log_error "Docker daemon is not running. Start Docker Desktop and try again."

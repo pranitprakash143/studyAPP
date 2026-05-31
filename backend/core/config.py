@@ -22,14 +22,35 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = False
 
-    # ── LLM Provider ─────────────────────────────────────────────────────────
-    # "cloud" uses Google Gemini; "local" uses Ollama running on the host
-    ai_provider: str = "cloud"  # "cloud" | "local"
+    # ── Central AI Providers ──────────────────────────────────────────────────
+    # "cloud" uses Google Gemini; "local" uses Ollama; "openai" uses OpenAI
+    ai_provider: str = "cloud"  # "cloud" | "local" | "openai"
 
     # Google Gemini
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
-    gemini_embedding_model: str = "models/text-embedding-004"
+    gemini_embedding_model: str = "models/text-embedding-001"
+
+    # OpenAI
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_embedding_model: str = "text-embedding-3-small"
+
+    # Groq
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
+
+    # OpenRouter
+    openrouter_api_key: str = ""
+    openrouter_model: str = "openrouter/free"
+
+    # Mistral
+    mistral_api_key: str = ""
+    mistral_model: str = "mistral-small-latest"
+
+    # DeepSeek
+    deepseek_api_key: str = ""
+    deepseek_model: str = "deepseek-v4-flash"
 
     # Ollama (local)
     ollama_base_url: str = "http://host.docker.internal:11434"

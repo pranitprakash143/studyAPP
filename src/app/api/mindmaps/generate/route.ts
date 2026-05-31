@@ -6,7 +6,7 @@ const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_U
 
 export async function POST(req: NextRequest) {
   try {
-    const { subject, topic } = await req.json();
+    const { subject, topic, content } = await req.json();
 
     if (!subject || !topic) {
       return NextResponse.json({ success: false, error: "Subject and topic are required." }, { status: 400 });
@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
     });
 
     if (!response.ok) {

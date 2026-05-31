@@ -9,6 +9,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 import logging
 import hashlib
+import asyncio
 from functools import lru_cache
 
 import chromadb
@@ -51,60 +52,93 @@ class _GeminiEmbedder:
             "content": {"parts": [{"text": text}]},
             "taskType": task_type,
         }
-        
+
         url = f"{self.BASE_URL}?key={self._api_key}"
-        
+
         for attempt in range(5):
             resp = httpx.post(url, json=payload, timeout=30)
             if resp.status_code == 429:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
                 continue
             if not resp.is_success:
                 raise RuntimeError(
                     f"Gemini embedContent API error {resp.status_code}: {resp.text[:300]}"
                 )
             return resp.json()["embedding"]["values"]
-        
-        raise RuntimeError("Gemini embedContent API error: Max retries exceeded for 429")
 
-    def __call__(
-        self, input: list[str], task_type: str = "RETRIEVAL_DOCUMENT"
-    ) -> list[list[float]]:  # noqa: A002
+        raise RuntimeError(
+            "Gemini embedContent API error: Max retries exceeded for 429"
+        )
+
+    async def _embed_one_async(
+        self, text: str, task_type: str = "RETRIEVAL_DOCUMENT"
+    ) -> list[float]:
         import httpx
-        import time
 
-        batch_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key={self._api_key}"
-        
-        all_embeddings = []
-        batch_size = 100
-        
-        for i in range(0, len(input), batch_size):
-            batch_texts = input[i:i+batch_size]
-            requests = [
-                {
-                    "model": self.MODEL,
-                    "content": {"parts": [{"text": text}]},
-                    "taskType": task_type,
-                }
-                for text in batch_texts
-            ]
-            
+        payload = {
+            "model": self.MODEL,
+            "content": {"parts": [{"text": text}]},
+            "taskType": task_type,
+        }
+
+        url = f"{self.BASE_URL}?key={self._api_key}"
+
+        async with httpx.AsyncClient(timeout=30) as client:
             for attempt in range(5):
-                resp = httpx.post(batch_url, json={"requests": requests}, timeout=45)
+                resp = await client.post(url, json=payload)
                 if resp.status_code == 429:
-                    time.sleep(2 ** attempt)
+                    await asyncio.sleep(2**attempt)
                     continue
                 if not resp.is_success:
                     raise RuntimeError(
-                        f"Gemini batchEmbedContents API error {resp.status_code}: {resp.text[:300]}"
+                        f"Gemini embedContent API error {resp.status_code}: {resp.text[:300]}"
                     )
-                
-                data = resp.json()
-                for embed_res in data.get("embeddings", []):
-                    all_embeddings.append(embed_res["values"])
-                break
-            else:
-                raise RuntimeError("Gemini batchEmbedContents API error: Max retries exceeded for 429")
+                return resp.json()["embedding"]["values"]
+
+        raise RuntimeError(
+            "Gemini embedContent API error: Max retries exceeded for 429"
+        )
+
+    async def __call__(
+        self, input: list[str], task_type: str = "RETRIEVAL_DOCUMENT"
+    ) -> list[list[float]]:  # noqa: A002
+        import httpx
+
+        batch_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key={self._api_key}"
+
+        all_embeddings = []
+        batch_size = 100
+
+        async with httpx.AsyncClient(timeout=45) as client:
+            for i in range(0, len(input), batch_size):
+                batch_texts = input[i : i + batch_size]
+                requests = [
+                    {
+                        "model": self.MODEL,
+                        "content": {"parts": [{"text": text}]},
+                        "taskType": task_type,
+                    }
+                    for text in batch_texts
+                ]
+
+                for attempt in range(5):
+                    resp = await client.post(batch_url, json={"requests": requests})
+                    if resp.status_code == 429:
+                        await asyncio.sleep(2**attempt)
+                        continue
+                    if not resp.is_success:
+                        raise RuntimeError(
+                            f"Gemini batchEmbedContents API error {resp.status_code}: {resp.text[:300]}"
+                        )
+
+                    data = resp.json()
+                    for embed_res in data.get("embeddings", []):
+                        all_embeddings.append(embed_res["values"])
+                    break
+                else:
+                    raise RuntimeError(
+                        "Gemini batchEmbedContents API error: Max retries exceeded for 429"
+                    )
 
         return all_embeddings
 
@@ -116,29 +150,101 @@ class _OllamaEmbedder:
         self._base_url = base_url
         self._model = model
 
-    def __call__(self, input: list[str]) -> list[list[float]]:  # noqa: A002
+    async def __call__(self, input: list[str]) -> list[list[float]]:  # noqa: A002
         import httpx
 
-        embeddings: list[list[float]] = []
-        for text in input:
-            resp = httpx.post(
-                f"{self._base_url}/api/embeddings",
-                json={"model": self._model, "prompt": text},
-                timeout=30,
+        if not input:
+            return []
+
+        # Ollama /api/embed supports batch input in a single request
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                resp = await client.post(
+                    f"{self._base_url}/api/embed",
+                    json={"model": self._model, "input": input},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                return data.get("embeddings", [])
+        except Exception as e:
+            logger.warning(
+                f"[OllamaEmbedder] Batch embed failed ({e}), falling back to one-by-one"
             )
-            resp.raise_for_status()
-            embeddings.append(resp.json()["embedding"])
-        return embeddings
+            # Fallback: embed one at a time
+            embeddings: list[list[float]] = []
+            async with httpx.AsyncClient(timeout=30) as client:
+                for text in input:
+                    resp = await client.post(
+                        f"{self._base_url}/api/embeddings",
+                        json={"model": self._model, "prompt": text},
+                    )
+                    resp.raise_for_status()
+                    embeddings.append(resp.json()["embedding"])
+            return embeddings
 
 
-@lru_cache(maxsize=1)
+class _OpenAIEmbedder:
+    """Calls the OpenAI REST API for embeddings directly via httpx."""
+
+    MODEL = "text-embedding-3-small"
+    BASE_URL = "https://api.openai.com/v1/embeddings"
+
+    def __init__(self, api_key: str):
+        self._api_key = api_key
+        logger.info(f"[Embedder] Using {self.MODEL} via OpenAI REST API (1536-dim)")
+
+    async def __call__(self, input: list[str]) -> list[list[float]]:
+        import httpx
+
+        if not input:
+            return []
+
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": self.MODEL,
+            "input": input,
+        }
+
+        async with httpx.AsyncClient(timeout=45) as client:
+            for attempt in range(5):
+                resp = await client.post(self.BASE_URL, headers=headers, json=payload)
+                if resp.status_code == 429:
+                    await asyncio.sleep(2**attempt)
+                    continue
+                if not resp.is_success:
+                    raise RuntimeError(
+                        f"OpenAI embeddings API error {resp.status_code}: {resp.text[:300]}"
+                    )
+                data = resp.json()
+                return [e["embedding"] for e in data.get("data", [])]
+
+        raise RuntimeError("OpenAI embeddings API error: Max retries exceeded for 429")
+
+
 def _get_embedder():
-    settings = get_settings()
-    if settings.ai_provider == "cloud":
-        if not settings.gemini_api_key:
+    from core.llm import get_resolved_ai_config
+    config = get_resolved_ai_config()
+    provider = config["provider"]
+
+    if provider == "openai":
+        if not config["openai_key"]:
+            raise ValueError("OpenAI API Key is not set in request headers or settings.")
+        return _OpenAIEmbedder(api_key=config["openai_key"])
+    elif provider == "cloud" or provider == "google":
+        if not config["gemini_key"]:
             raise ValueError("GEMINI_API_KEY is not set.")
-        return _GeminiEmbedder(api_key=settings.gemini_api_key)
+        return _GeminiEmbedder(api_key=config["gemini_key"])
     else:
+        # Fallback embedder logic for other providers (groq, openrouter, mistral, deepseek)
+        if config.get("gemini_key"):
+            return _GeminiEmbedder(api_key=config["gemini_key"])
+        elif config.get("openai_key"):
+            return _OpenAIEmbedder(api_key=config["openai_key"])
+            
+        settings = get_settings()
         return _OllamaEmbedder(
             base_url=settings.ollama_base_url,
             model="nomic-embed-text",
@@ -164,24 +270,41 @@ def get_chroma_client() -> chromadb.HttpClient:
     return client
 
 
-@lru_cache(maxsize=1)
+_collections_cache = {}
+
+
 def _get_collection():
-    """Return the ChromaDB collection (create if not exists)."""
+    """Return the dynamic request-scoped ChromaDB collection based on provider."""
+    from core.llm import get_resolved_ai_config
+    config = get_resolved_ai_config()
+    provider = config["provider"]
+
     settings = get_settings()
-    client = get_chroma_client()
-    collection = client.get_or_create_collection(
-        name=settings.chroma_collection,
-        metadata={"hnsw:space": "cosine"},
-    )
-    logger.info(
-        f"[ChromaDB] Collection ready: '{settings.chroma_collection}' ({collection.count()} docs)"
-    )
-    return collection
+    collection_name = f"{settings.chroma_collection}_{provider}"
+
+    if collection_name not in _collections_cache:
+        client = get_chroma_client()
+        collection = client.get_or_create_collection(
+            name=collection_name,
+            metadata={"hnsw:space": "cosine"},
+        )
+        logger.info(
+            f"[ChromaDB] Collection ready: '{collection_name}' ({collection.count()} docs)"
+        )
+        _collections_cache[collection_name] = collection
+
+    return _collections_cache[collection_name]
 
 
 # Keep this for backward compatibility (health check in main.py)
 def get_vector_store():
-    return _get_collection()
+    # Return the cloud or default collection to avoid breaking startup health check
+    settings = get_settings()
+    client = get_chroma_client()
+    return client.get_or_create_collection(
+        name=f"{settings.chroma_collection}_cloud",
+        metadata={"hnsw:space": "cosine"},
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -246,7 +369,7 @@ async def upsert_chunks(
 
     # Generate embeddings
     try:
-        embeddings = embedder(documents)
+        embeddings = await embedder(documents)
     except Exception as e:
         logger.error(f"[ChromaDB] Embedding failed: {e}")
         raise RuntimeError(f"Error embedding content: {e}") from e
@@ -274,10 +397,12 @@ async def query_chunks(
     # Embed the query using RETRIEVAL_QUERY task type for best semantic match
     try:
         if isinstance(embedder, _GeminiEmbedder):
-            # Use RETRIEVAL_QUERY task type via our direct v1 REST API embedder
-            query_embedding = embedder._embed_one(query, task_type="RETRIEVAL_QUERY")
+            query_embedding = await embedder._embed_one_async(
+                query, task_type="RETRIEVAL_QUERY"
+            )
         else:
-            query_embedding = embedder([query])[0]
+            result = await embedder([query])
+            query_embedding = result[0]
     except Exception as e:
         logger.error(f"[ChromaDB] Query embedding failed: {e}")
         raise RuntimeError(f"Error embedding query: {e}") from e
@@ -353,7 +478,9 @@ async def query_chunks_with_hyde(
             f"[HyDE] Generated hypothesis ({len(hypothetical_answer)} chars) for query: '{query[:60]}'"
         )
     except Exception as e:
-        logger.warning(f"[HyDE] Hypothesis generation failed, falling back to standard retrieval: {e}")
+        logger.warning(
+            f"[HyDE] Hypothesis generation failed, falling back to standard retrieval: {e}"
+        )
         return await query_chunks(query=query, subject=subject, top_k=top_k)
 
     # Step 2: Embed the HYPOTHETICAL ANSWER (not the query)
@@ -363,12 +490,16 @@ async def query_chunks_with_hyde(
 
     try:
         if isinstance(embedder, _GeminiEmbedder):
-            # Embed as RETRIEVAL_DOCUMENT since hypothesis looks like a document
-            hyde_embedding = embedder._embed_one(hypothetical_answer, task_type="RETRIEVAL_DOCUMENT")
+            hyde_embedding = await embedder._embed_one_async(
+                hypothetical_answer, task_type="RETRIEVAL_DOCUMENT"
+            )
         else:
-            hyde_embedding = embedder([hypothetical_answer])[0]
+            result = await embedder([hypothetical_answer])
+            hyde_embedding = result[0]
     except Exception as e:
-        logger.warning(f"[HyDE] Embedding hypothesis failed, falling back to standard retrieval: {e}")
+        logger.warning(
+            f"[HyDE] Embedding hypothesis failed, falling back to standard retrieval: {e}"
+        )
         return await query_chunks(query=query, subject=subject, top_k=top_k)
 
     # Step 3: Search ChromaDB with the hypothesis embedding
@@ -382,7 +513,9 @@ async def query_chunks_with_hyde(
             include=["documents", "metadatas", "distances"],
         )
     except Exception as e:
-        logger.warning(f"[HyDE] ChromaDB query failed, falling back to standard retrieval: {e}")
+        logger.warning(
+            f"[HyDE] ChromaDB query failed, falling back to standard retrieval: {e}"
+        )
         return await query_chunks(query=query, subject=subject, top_k=top_k)
 
     output: list[dict] = []

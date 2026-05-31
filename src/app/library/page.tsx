@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import Navbar from "@/components/Navbar";
+import PageLayout from "@/components/PageLayout";
+import PageHeader from "@/components/PageHeader";
+import Card from "@/components/Card";
+import LoadingState from "@/components/LoadingState";
+import EmptyState from "@/components/EmptyState";
+import ErrorAlert from "@/components/ErrorAlert";
+import StatusBadge from "@/components/StatusBadge";
 import {
   BookOpen,
   FileText,
@@ -211,26 +216,12 @@ export default function LibraryExplorer() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0b0f19]">
-      <Sidebar />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar />
-        
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-8 max-w-6xl mx-auto relative">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-              <Database className="h-7 w-7 text-indigo-500" />
-              Master Library Index
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Explore grouped catalogs of all your study files, revision sheets, and past year question banks.
-            </p>
-          </div>
-        </div>
+    <PageLayout maxWidth="6xl">
+      <PageHeader
+        icon={<Database className="h-7 w-7 text-indigo-500" />}
+        title="Master Library Index"
+        description="Explore grouped catalogs of all your study files, revision sheets, and past year question banks."
+      />
 
         {/* Global Search Bar */}
         <form
@@ -562,9 +553,6 @@ export default function LibraryExplorer() {
             </div>
           </div>
         )}
-      </main>
-        </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

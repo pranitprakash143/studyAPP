@@ -43,6 +43,14 @@ if (!_isInsideDocker && _rawBackendUrl.includes("//backend")) {
 // Types matching FastAPI response schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
+export interface IngestRequest {
+  subject: string;
+  topic: string;
+  file?: File | null;
+  youtubeUrl?: string | null;
+  pastedText?: string | null;
+}
+
 export interface BackendChapter {
   title: string;
   preview?: string;
@@ -128,15 +136,34 @@ export async function checkBackendHealth(): Promise<BackendHealthResponse> {
 }
 
 /**
- * Proxy an ingestion FormData request straight to the FastAPI backend.
+ * Proxy an ingestion request straight to the FastAPI backend.
+ * Accepts IngestRequest or FormData, assembling and mapping keys dynamically.
  * The backend handles parsing, LangGraph pipeline, and ChromaDB upsert.
  */
 export async function proxyIngest(
-  formData: FormData
+  input: IngestRequest | FormData
 ): Promise<BackendIngestResponse> {
+  let body: FormData;
+
+  if (input instanceof FormData) {
+    body = input;
+  } else {
+    body = new FormData();
+    body.append("subject", input.subject);
+    body.append("topic", input.topic);
+
+    if (input.file) {
+      body.append("file", input.file, input.file.name);
+    } else if (input.youtubeUrl) {
+      body.append("youtube_url", input.youtubeUrl.trim());
+    } else if (input.pastedText) {
+      body.append("pasted_text", input.pastedText.trim());
+    }
+  }
+
   const res = await fetch(`${BACKEND_URL}/api/ingest`, {
     method: "POST",
-    body: formData,
+    body,
     // Do NOT set Content-Type manually — fetch sets the correct multipart boundary
   });
 
@@ -166,7 +193,7 @@ export async function queryKnowledgeBase(
 
   const data: BackendQueryResponse = await res.json();
   if (!res.ok) {
-    throw new Error((data as any).detail || `Query failed: ${res.status}`);
+    throw new Error((data as unknown as Record<string, unknown>).detail as string || `Query failed: ${res.status}`);
   }
   return data.results;
 }

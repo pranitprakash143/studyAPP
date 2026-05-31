@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import Navbar from "@/components/Navbar";
+import PageLayout from "@/components/PageLayout";
+import PageHeader from "@/components/PageHeader";
+import Card from "@/components/Card";
+import LoadingState from "@/components/LoadingState";
+import ErrorAlert from "@/components/ErrorAlert";
+import StatusBadge from "@/components/StatusBadge";
+import TabGroup from "@/components/TabGroup";
 import {
   BarChart2,
   FileText,
@@ -241,30 +246,12 @@ export default function PYQAnalysis() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0b0f19]">
-      <Sidebar />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Navbar />
-        
-        <div className="flex-1 overflow-y-auto">
-          <main className="p-8 max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 dark:text-indigo-400">
-              <BarChart2 className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Exam Papers & Syllabus Gap Analysis
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">
-                Upload past year questions to build your study banks, then scan for coverage gaps in your master library notes.
-              </p>
-            </div>
-          </div>
-        </div>
+    <PageLayout maxWidth="6xl">
+      <PageHeader
+        icon={<BarChart2 className="h-6 w-6" />}
+        title="Exam Papers & Syllabus Gap Analysis"
+        description="Upload past year questions to build your study banks, then scan for coverage gaps in your master library notes."
+      />
 
         {/* Modular Workflow Switcher (Stage 1 vs. Stage 2) */}
         <div className="grid grid-cols-2 bg-slate-100 dark:bg-slate-900/60 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 mb-8 max-w-lg">
@@ -637,9 +624,6 @@ export default function PYQAnalysis() {
             )}
           </div>
         )}
-      </main>
-        </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

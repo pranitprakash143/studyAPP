@@ -1,9 +1,17 @@
+import "@/lib/logger"; // Ensure console logger is imported and registered
 import { NextRequest, NextResponse } from "next/server";
 import { getAIConfigFromRequest, generateText } from "@/lib/ai-provider";
 
 export async function POST(req: NextRequest) {
   try {
     const config = getAIConfigFromRequest(req);
+    console.log(`[Test Connection API] Starting test for provider: ${config.provider}`);
+    if (config.provider === "cloud") {
+      console.log(`[Test Connection API] Configured Gemini model: ${config.geminiModel}`);
+      console.log(`[Test Connection API] API Key length: ${config.geminiApiKey?.length || 0}`);
+    } else {
+      console.log(`[Test Connection API] Configured Local Endpoint: ${config.lmStudioEndpoint}`);
+    }
     
     // Perform a quick test query
     let reply = "";
@@ -13,8 +21,9 @@ export async function POST(req: NextRequest) {
         "Say exactly the word 'CONNECTED' and nothing else.",
         "You are a connection testing assistant."
       );
+      console.log(`[Test Connection API] Success! Response from LLM: "${reply.trim()}"`);
     } catch (genError: any) {
-      console.error("generateText failed, fetching available models...", genError);
+      console.error("[Test Connection API] generateText failed, fetching available models...", genError);
       if (config.provider === "cloud" && config.geminiApiKey) {
         try {
           const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${config.geminiApiKey}`;

@@ -16,10 +16,36 @@ from api.subjects import router as subjects_router
 from api.wiki import router as wiki_router
 from api.jobs import router as jobs_router
 
+import os
+from logging.handlers import RotatingFileHandler
+
 # ── Logging ──────────────────────────────────────────────────────────────────
+# Setup persistent log folder inside shared knowledge_base volume
+LOG_DIR = "/app/knowledge_base/logs"
+try:
+    os.makedirs(LOG_DIR, exist_ok=True)
+except Exception:
+    pass
+
+BACKEND_LOG_FILE = os.path.join(LOG_DIR, "backend.log")
+
+formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s — %(message)s")
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+
+try:
+    file_handler = RotatingFileHandler(
+        BACKEND_LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=2, encoding="utf-8"
+    )
+    file_handler.setFormatter(formatter)
+    handlers = [console_handler, file_handler]
+except Exception:
+    handlers = [console_handler]
+
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+    handlers=handlers
 )
 logger = logging.getLogger(__name__)
 

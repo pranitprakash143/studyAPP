@@ -116,7 +116,10 @@ StudyApp/
 │   │       ├── pyq/analyze/route.ts # Gap analysis
 │   │       ├── notes/restructure/route.ts # AI text restructuring
 │   │       ├── notes/explain/route.ts     # Socratic explanation
-│   │       └── settings/test/route.ts     # Connection test
+│   │       ├── settings/test/route.ts     # Connection test
+│   │       ├── mindmaps/generate/route.ts # On-demand mindmap generation
+│   │       ├── jobs/[jobId]/route.ts      # Polling route for async tasks
+│   │       └── wiki/                      # Wiki read & graph routes
 │   ├── components/               # Shared UI components
 │   │   ├── Navbar.tsx            # Top bar with breadcrumbs + search
 │   │   ├── Sidebar.tsx           # Navigation + theme picker
@@ -204,6 +207,9 @@ All Next.js API routes live under `src/app/api/*/route.ts`. They act as **server
 | `/api/notes/restructure` | [`src/app/api/notes/restructure/route.ts`](src/app/api/notes/restructure/route.ts) | POST | AI restructures selected text segment (bullets, tables, timelines) |
 | `/api/notes/explain` | [`src/app/api/notes/explain/route.ts`](src/app/api/notes/explain/route.ts) | POST | Socratic explanation: core concept → key details → check-in question |
 | `/api/settings/test` | [`src/app/api/settings/test/route.ts`](src/app/api/settings/test/route.ts) | POST | Connection test: sends "Say CONNECTED" to configured AI provider |
+| `/api/mindmaps/generate` | [`src/app/api/mindmaps/generate/route.ts`](src/app/api/mindmaps/generate/route.ts) | POST | Triggers on-demand mindmap extraction from wiki pages |
+| `/api/jobs/[jobId]` | [`src/app/api/jobs/[jobId]/route.ts`](src/app/api/jobs/[jobId]/route.ts) | GET | Polls background job status (e.g. for ingestion) |
+| `/api/wiki` | [`src/app/api/wiki/route.ts`](src/app/api/wiki/route.ts) | GET | Fetches wiki pages and wiki graph data |
 
 ---
 
@@ -224,6 +230,8 @@ All Next.js API routes live under `src/app/api/*/route.ts`. They act as **server
 | `/api/ingest` | [`backend/api/ingest.py`](backend/api/ingest.py) | POST | Accepts file/pasted_text/youtube_url → routes to parser → runs LangGraph pipeline → upserts to ChromaDB |
 | `/api/query` | [`backend/api/query.py`](backend/api/query.py) | POST | Semantic search over ChromaDB with optional subject filter |
 | `/api/subjects` | [`backend/api/subjects.py`](backend/api/subjects.py) | GET / POST / DELETE | List subjects, get subject chunks, save notes directly, delete subject/topic |
+| `/api/jobs` | [`backend/api/jobs.py`](backend/api/jobs.py) | GET | Background job status polling |
+| `/api/wiki` | [`backend/api/wiki.py`](backend/api/wiki.py) | GET / POST | Wiki pages, graph structure, and on-demand mindmap extraction |
 
 ### Parsers
 
@@ -237,13 +245,13 @@ All Next.js API routes live under `src/app/api/*/route.ts`. They act as **server
 | **YouTube** | [`backend/parsers/youtube_parser.py`](backend/parsers/youtube_parser.py) | youtube-transcript-api (English preferred) |
 | **Text** | [`backend/parsers/router.py`](backend/parsers/router.py) | Direct UTF-8 decode for `.txt`, `.md` |
 
-### Ingestion Graph (LangGraph) — v2 (9-Node Pipeline)
+### Ingestion Graph (LangGraph) — v2 (8-Node Pipeline)
 
-[`backend/graphs/ingestion_graph.py`](backend/graphs/ingestion_graph.py) — **9-node state machine** (upgraded from 7):
+[`backend/graphs/ingestion_graph.py`](backend/graphs/ingestion_graph.py) — **8-node state machine** (upgraded and optimized):
 
 ```
 analyze_structure → save_raw_clean → semantic_split → generate_toc → semantic_tag
-    → assemble_chapters → format_chapters → save_to_chroma → extract_mindmap → END
+    → assemble_chapters → format_chapters → save_to_chroma → END
 ```
 
 | Node | Function | Description |
@@ -256,9 +264,9 @@ analyze_structure → save_raw_clean → semantic_split → generate_toc → sem
 | **6. assemble_chapters** | `assemble_chapters()` | Groups chunks by chapter+subtopic; **completeness gate** (≥92% or fallback to single chapter) |
 | **7. format_chapters** | `format_chapters()` | AI formats with subtopic outline as structural guide → splits formatted Markdown into subtopic-level chunks |
 | **8. save_to_chroma** | `save_to_chroma()` | Upserts **subtopic-level chunks** into ChromaDB (each with `subtopic` metadata field) |
-| **9. extract_mindmap** | `extract_mindmap()` | AI extracts concept graph (nodes + edges) — failure-safe bonus step |
 
-**Key improvements over v1 (7-node)**:
+**Key improvements over v1**:
+- **Faster Ingestion**: Mindmap extraction was removed from the pipeline and made into an on-demand process triggered from the UI, drastically speeding up ingestion times.
 - **Full-document analysis** instead of stratified sampling → better chapter detection
 - **Character offset boundaries** → deterministic chunk assignment (was: crude keyword overlap)
 - **Subtopic-level chunks** in ChromaDB → much better RAG retrieval precision
@@ -355,9 +363,8 @@ User uploads file/YouTube/text
 │     - assemble_chapters (≥92% gate)  │
 │     - format_chapters (+subtopics)   │
 │     - save_to_chroma (subtopic-level)│
-│     - extract_mindmap (bonus)        │
 │  4. Return: chapters, subtopics,     │
-│     chunks, score, mindmap, errors   │
+│     chunks, score, errors            │
 └──────────────┬───────────────────────┘
                │
                ▼
@@ -571,3 +578,11 @@ The current 10-node LangGraph pipeline (`backend/graphs/ingestion_graph.py`) pro
    - A background task system (via `FastAPI.BackgroundTasks`) is now used for the `/ingest` route, providing clients with a `job_id`.
    - The frontend polls the backend `/api/jobs/{jobId}` until the ingestion completes.
    - Parallelized document chunk processing within LangGraph using `asyncio.gather()`, drastically improving ingestion speed for multi-chapter/multi-chunk documents.
+
+3. **On-Demand Mindmap Generation**:
+   - To significantly reduce document processing time during ingestion, mindmap generation was extracted from the LangGraph pipeline.
+   - Mindmaps are now generated on-demand via a button in the UI (`/api/mindmaps/generate`), using the already generated Wiki pages as context for rapid extraction.
+
+4. **Production Routing Architecture Fix**:
+   - The `Caddyfile` reverse proxy was updated to route all `/api/*` traffic to the Next.js frontend rather than bypassing it directly to the Python backend.
+   - This ensures Next.js API routes execute properly to handle local state (JSON storage) and securely proxy necessary requests to the FastAPI backend via the internal Docker network (`BACKEND_URL`).

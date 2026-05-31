@@ -50,10 +50,10 @@ else
     echo "✅ Docker is already installed."
 fi
 
-# 3. Request environment variables from the user
-echo "🔑 Please provide the necessary environment variables."
-read -p "Enter your Domain Name (e.g., app.yourdomain.com) or 'localhost' if testing locally: " DOMAIN
-read -p "Enter your Google Gemini API Key: " GEMINI_API_KEY
+# 3. Use hardcoded environment variables
+echo "🔑 Using hardcoded environment variables."
+DOMAIN="ec2-13-206-237-81.ap-south-1.compute.amazonaws.com"
+GEMINI_API_KEY="AIzaSyBiusk51Y0uH7yWbVU8gdpKitvzFfv7QMs"
 
 # 4. Create the .env file
 echo "📝 Generating .env file..."

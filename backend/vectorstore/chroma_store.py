@@ -44,27 +44,69 @@ class _GeminiEmbedder:
         self, text: str, task_type: str = "RETRIEVAL_DOCUMENT"
     ) -> list[float]:
         import httpx
+        import time
 
         payload = {
             "model": self.MODEL,
             "content": {"parts": [{"text": text}]},
             "taskType": task_type,
         }
-        resp = httpx.post(
-            f"{self.BASE_URL}?key={self._api_key}",
-            json=payload,
-            timeout=30,
-        )
-        if not resp.is_success:
-            raise RuntimeError(
-                f"Gemini embedContent API error {resp.status_code}: {resp.text[:300]}"
-            )
-        return resp.json()["embedding"]["values"]
+        
+        url = f"{self.BASE_URL}?key={self._api_key}"
+        
+        for attempt in range(5):
+            resp = httpx.post(url, json=payload, timeout=30)
+            if resp.status_code == 429:
+                time.sleep(2 ** attempt)
+                continue
+            if not resp.is_success:
+                raise RuntimeError(
+                    f"Gemini embedContent API error {resp.status_code}: {resp.text[:300]}"
+                )
+            return resp.json()["embedding"]["values"]
+        
+        raise RuntimeError("Gemini embedContent API error: Max retries exceeded for 429")
 
     def __call__(
         self, input: list[str], task_type: str = "RETRIEVAL_DOCUMENT"
     ) -> list[list[float]]:  # noqa: A002
-        return [self._embed_one(text, task_type) for text in input]
+        import httpx
+        import time
+
+        batch_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key={self._api_key}"
+        
+        all_embeddings = []
+        batch_size = 100
+        
+        for i in range(0, len(input), batch_size):
+            batch_texts = input[i:i+batch_size]
+            requests = [
+                {
+                    "model": self.MODEL,
+                    "content": {"parts": [{"text": text}]},
+                    "taskType": task_type,
+                }
+                for text in batch_texts
+            ]
+            
+            for attempt in range(5):
+                resp = httpx.post(batch_url, json={"requests": requests}, timeout=45)
+                if resp.status_code == 429:
+                    time.sleep(2 ** attempt)
+                    continue
+                if not resp.is_success:
+                    raise RuntimeError(
+                        f"Gemini batchEmbedContents API error {resp.status_code}: {resp.text[:300]}"
+                    )
+                
+                data = resp.json()
+                for embed_res in data.get("embeddings", []):
+                    all_embeddings.append(embed_res["values"])
+                break
+            else:
+                raise RuntimeError("Gemini batchEmbedContents API error: Max retries exceeded for 429")
+
+        return all_embeddings
 
 
 class _OllamaEmbedder:

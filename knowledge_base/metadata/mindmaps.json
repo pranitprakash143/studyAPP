@@ -1,0 +1,91 @@
+[
+  {
+    "subject": "History",
+    "topic": "ASSAM modern HISTORY",
+    "nodes": [
+      {
+        "id": "david_scott",
+        "label": "David Scott"
+      },
+      {
+        "id": "purandar_singha",
+        "label": "Purandar Singha"
+      },
+      {
+        "id": "jaintia",
+        "label": "Jaintia"
+      },
+      {
+        "id": "cachar",
+        "label": "Cachar"
+      },
+      {
+        "id": "phulaguri_uprising",
+        "label": "Phulaguri Uprising"
+      },
+      {
+        "id": "jonaki",
+        "label": "Jonaki"
+      },
+      {
+        "id": "khamtis",
+        "label": "Khamtis"
+      },
+      {
+        "id": "british_administration",
+        "label": "British Administration"
+      },
+      {
+        "id": "assamese_literature",
+        "label": "Assamese Literature"
+      },
+      {
+        "id": "ryots",
+        "label": "Ryots"
+      }
+    ],
+    "edges": [
+      {
+        "source": "david_scott",
+        "target": "british_administration",
+        "label": "served_as_agent_for"
+      },
+      {
+        "source": "purandar_singha",
+        "target": "british_administration",
+        "label": "vassal_to"
+      },
+      {
+        "source": "jaintia",
+        "target": "british_administration",
+        "label": "annexed_by"
+      },
+      {
+        "source": "cachar",
+        "target": "british_administration",
+        "label": "vassal_to"
+      },
+      {
+        "source": "ryots",
+        "target": "phulaguri_uprising",
+        "label": "participated_in"
+      },
+      {
+        "source": "jonaki",
+        "target": "assamese_literature",
+        "label": "influenced"
+      },
+      {
+        "source": "khamtis",
+        "target": "british_administration",
+        "label": "rebelled_against"
+      },
+      {
+        "source": "british_administration",
+        "target": "jaintia",
+        "label": "annexed"
+      }
+    ],
+    "updatedAt": "2026-05-30T08:06:01.074Z"
+  }
+]

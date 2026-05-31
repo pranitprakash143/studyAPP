@@ -1,0 +1,28 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.dev.yml
+# Development override — enables hot-reload and mounts source code directly.
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+
+  backend:
+    build:
+      context: ./backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app          # Mount source for hot-reload
+      - ./knowledge_base:/app/knowledge_base
+    environment:
+      - DEBUG=true
+
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.nextjs
+    command: npm run dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development

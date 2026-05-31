@@ -1,0 +1,85 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml
+# Orchestrates: nextjs (frontend) + backend (Python FastAPI) + chromadb
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+
+  # ── ChromaDB — Vector Database ─────────────────────────────────────────────
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: prepagent-chromadb
+    restart: unless-stopped
+    ports:
+      - "8001:8000"           # ChromaDB listens on 8000 internally; exposed as 8001
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    # NOTE: chromadb/chroma:latest is a distroless-style image (no curl/python/sh).
+    # Healthcheck is disabled here — the backend retries the connection on startup instead.
+    networks:
+      - prepagent-net
+
+  # ── Python FastAPI Backend ─────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: prepagent-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - chromadb        # Start after chromadb; retry logic in main.py handles readiness
+    env_file:
+      - .env
+    environment:
+      - CHROMA_HOST=chromadb     # Docker service name resolves on the internal network
+      - CHROMA_PORT=8000          # ChromaDB's internal port
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    volumes:
+      - ./knowledge_base:/app/knowledge_base   # Shared with Next.js for backward compat
+      - backend_uploads:/app/uploads
+    networks:
+      - prepagent-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── Next.js Frontend ───────────────────────────────────────────────────────
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.nextjs
+    container_name: prepagent-nextjs
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+      - BACKEND_URL=http://backend:8000   # Server-side proxy URL (internal Docker network)
+      - NODE_ENV=production
+    volumes:
+      - ./knowledge_base:/app/knowledge_base
+    networks:
+      - prepagent-net
+
+
+# ── Volumes ────────────────────────────────────────────────────────────────
+volumes:
+  chroma_data:
+    driver: local
+  backend_uploads:
+    driver: local
+
+# ── Networks ──────────────────────────────────────────────────────────────
+networks:
+  prepagent-net:
+    driver: bridge

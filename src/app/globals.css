@@ -1,0 +1,448 @@
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom premium scrollbar for Socratic box and overlays */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.25);
+  border-radius: 99px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.45);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PREPAGENT ULTIMATE SEMANTIC THEME ENGINE (RE-ENGINEERED)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Default Theme / Classic Ivory Light Mode */
+:root, .theme-light {
+  --app-bg: #f8fafc;
+  --app-card: #ffffff;
+  --app-text: #0f172a;
+  --app-text-muted: #64748b;
+  --app-border: #e2e8f0;
+  --app-accent: #4f46e5;
+  --app-accent-hover: #4338ca;
+  --app-accent-light: #e0e7ff;
+}
+
+/* Premium Dark Obsidian Theme */
+.theme-dark {
+  --app-bg: #0b0f19;
+  --app-card: #111726;
+  --app-text: #f8fafc;
+  --app-text-muted: #94a3b8;
+  --app-border: #1e293b;
+  --app-accent: #6366f1;
+  --app-accent-hover: #4f46e5;
+  --app-accent-light: #1e1b4b;
+}
+
+/* Warm Sepia Reading Room (Cream/Amber) — Soft on eyes */
+.theme-sepia {
+  --app-bg: #f5ecd5; /* Smooth Antique Paper Cream */
+  --app-card: #ebdcb9; /* Cream Card Background */
+  --app-text: #3b2c1b; /* Cozy Soft Charcoal Brown */
+  --app-text-muted: #7c6853; /* Muted Cocoa */
+  --app-border: #dfd0b2; /* Warm Sepia Border */
+  --app-accent: #b58900; /* Warm Solarized Amber */
+  --app-accent-hover: #9c7300;
+  --app-accent-light: #fbf7ec;
+
+  /* Core Tailwind Dark-Mode Slate Overrides (Inherited globally) */
+  --color-slate-50: #fbf7ec;
+  --color-slate-100: #3b2c1b;
+  --color-slate-200: #4a3b2a;
+  --color-slate-300: #5c4b37;
+  --color-slate-400: #7c6853;
+  --color-slate-500: #8b755e;
+  --color-slate-600: #9c8973;
+  --color-slate-700: #cfc0a2;
+  --color-slate-800: #dfd0b2;
+  --color-slate-900: #ebdcb9;
+  --color-slate-950: #f5ecd5;
+  
+  --color-white: #3b2c1b; /* Safeguard white text blocks */
+}
+
+/* Forest Sanctuary (Pine Green/Mint) — Calming study */
+.theme-forest {
+  --app-bg: #0b1a11; /* Deep Midnight Pine Forest */
+  --app-card: #12281a; /* Cozy Sage Card */
+  --app-text: #e6f4ed; /* Soft Mint Leaf Text */
+  --app-text-muted: #8eb09b; /* Soothing Seafoam */
+  --app-border: #1a3825; /* Soft Mossy Border */
+  --app-accent: #10b981; /* High-Yield Emerald Accent */
+  --app-accent-hover: #059669;
+  --app-accent-light: #0a331c;
+
+  /* Core Tailwind Dark-Mode Slate Overrides (Inherited globally) */
+  --color-slate-50: #ecfdf5;
+  --color-slate-100: #e6f4ed;
+  --color-slate-200: #d1fae5;
+  --color-slate-300: #a7f3d0;
+  --color-slate-400: #8eb09b;
+  --color-slate-500: #6b8d78;
+  --color-slate-600: #486a55;
+  --color-slate-700: #234b33;
+  --color-slate-800: #1a3825;
+  --color-slate-900: #12281a;
+  --color-slate-950: #0b1a11;
+}
+
+/* Deep Ocean Abyss (Ocean Navy/Teal) — Stunning contrast */
+.theme-ocean {
+  --app-bg: #030813; /* Deep Ocean Trench */
+  --app-card: #081120; /* Midnight Sea Card */
+  --app-text: #e0f2fe; /* Soothing Sky Blue Text */
+  --app-text-muted: #6ba8d6; /* Muted Cobalt */
+  --app-border: #0e1e36; /* Dark Abyssal Border */
+  --app-accent: #06b6d4; /* Vibrant Bioluminescent Cyan */
+  --app-accent-hover: #0891b2;
+  --app-accent-light: #072a3a;
+
+  /* Core Tailwind Dark-Mode Slate Overrides (Inherited globally) */
+  --color-slate-50: #f0f9ff;
+  --color-slate-100: #e0f2fe;
+  --color-slate-200: #bae6fd;
+  --color-slate-300: #7dd3fc;
+  --color-slate-400: #6ba8d6;
+  --color-slate-500: #38bdf8;
+  --color-slate-600: #0284c7;
+  --color-slate-700: #162d4e;
+  --color-slate-800: #0e1e36;
+  --color-slate-900: #081120;
+  --color-slate-950: #030813;
+}
+
+/* Force active variables globally on body */
+body {
+  background-color: var(--app-bg) !important;
+  color: var(--app-text) !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+}
+
+/* ── Specificity-Victory Color Overrides ── */
+
+/* Page Background Overrides */
+html.theme-sepia .dark\:bg-\[\#0b0f19\],
+html.theme-forest .dark\:bg-\[\#0b0f19\],
+html.theme-ocean .dark\:bg-\[\#0b0f19\],
+html.theme-dark .dark\:bg-\[\#0b0f19\],
+html.theme-light .bg-slate-50,
+html.theme-sepia .bg-slate-50,
+html.theme-forest .bg-slate-50,
+html.theme-ocean .bg-slate-50,
+html.theme-dark .bg-slate-50,
+.bg-slate-50,
+.bg-slate-950 {
+  background-color: var(--app-bg) !important;
+}
+
+/* Card Background Overrides */
+html.theme-sepia .dark\:bg-\[\#111726\],
+html.theme-forest .dark\:bg-\[\#111726\],
+html.theme-ocean .dark\:bg-\[\#111726\],
+html.theme-dark .dark\:bg-\[\#111726\],
+html.theme-sepia .dark\:bg-\[\#111726\]\/60,
+html.theme-forest .dark\:bg-\[\#111726\]\/60,
+html.theme-ocean .dark\:bg-\[\#111726\]\/60,
+html.theme-sepia .dark\:bg-\[\#0e1322\],
+html.theme-forest .dark\:bg-\[\#0e1322\],
+html.theme-ocean .dark\:bg-\[\#0e1322\],
+html.theme-dark .dark\:bg-\[\#0e1322\],
+html.theme-light .bg-white,
+html.theme-sepia .bg-white,
+html.theme-forest .bg-white,
+html.theme-ocean .bg-white,
+html.theme-dark .bg-white,
+.bg-white,
+.bg-white\/75,
+.bg-white\/80,
+.bg-white\/70 {
+  background-color: var(--app-card) !important;
+}
+
+/* Input boxes & sub-elements */
+html.theme-sepia .dark\:bg-\[\#151c2f\]\/40,
+html.theme-forest .dark\:bg-\[\#151c2f\]\/40,
+html.theme-ocean .dark\:bg-\[\#151c2f\]\/40,
+html.theme-dark .dark\:bg-\[\#151c2f\]\/40,
+.bg-slate-50\/50,
+.bg-slate-100 {
+  background-color: var(--app-bg) !important;
+}
+
+/* Primary text colors */
+html.theme-sepia .dark\:text-white,
+html.theme-forest .dark\:text-white,
+html.theme-ocean .dark\:text-white,
+html.theme-sepia .dark\:text-slate-100,
+html.theme-forest .dark\:text-slate-100,
+html.theme-ocean .dark\:text-slate-100,
+html.theme-sepia .dark\:text-slate-200,
+html.theme-forest .dark\:text-slate-200,
+html.theme-ocean .dark\:text-slate-200,
+.text-slate-900,
+.text-slate-800 {
+  color: var(--app-text) !important;
+}
+
+/* Muted secondary text colors */
+html.theme-sepia .dark\:text-slate-400,
+html.theme-forest .dark\:text-slate-400,
+html.theme-ocean .dark\:text-slate-400,
+html.theme-sepia .dark\:text-slate-500,
+html.theme-forest .dark\:text-slate-500,
+html.theme-ocean .dark\:text-slate-500,
+.text-slate-400,
+.text-slate-500 {
+  color: var(--app-text-muted) !important;
+}
+
+/* Border overrides */
+html.theme-sepia .dark\:border-slate-800,
+html.theme-forest .dark\:border-slate-800,
+html.theme-ocean .dark\:border-slate-800,
+html.theme-sepia .dark\:border-slate-800\/80,
+html.theme-forest .dark\:border-slate-800\/80,
+html.theme-ocean .dark\:border-slate-800\/80,
+html.theme-sepia .dark\:border-slate-700,
+html.theme-forest .dark\:border-slate-700,
+html.theme-ocean .dark\:border-slate-700,
+.border-slate-200,
+.border-slate-200\/50 {
+  border-color: var(--app-border) !important;
+}
+
+/* Accents & buttons colors overrides */
+html.theme-sepia .dark\:text-indigo-400,
+html.theme-forest .dark\:text-indigo-400,
+html.theme-ocean .dark\:text-indigo-400,
+.text-indigo-650,
+.text-indigo-600,
+.text-indigo-500 {
+  color: var(--app-accent) !important;
+}
+
+.bg-indigo-650,
+.bg-indigo-600,
+.bg-indigo-500 {
+  background-color: var(--app-accent) !important;
+}
+
+.bg-indigo-650:hover,
+.bg-indigo-600:hover,
+.bg-indigo-500:hover {
+  background-color: var(--app-accent-hover) !important;
+}
+
+/* Sidebar & header card bodies */
+aside, header {
+  background-color: var(--app-card) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text) !important;
+}
+
+/* Sidebar active navigation pills */
+.bg-indigo-50,
+html.theme-sepia .dark\:bg-indigo-950\/40,
+html.theme-forest .dark\:bg-indigo-950\/40,
+html.theme-ocean .dark\:bg-indigo-950\/40,
+html.theme-dark .dark\:bg-indigo-950\/40 {
+  background-color: var(--app-accent-light) !important;
+  color: var(--app-accent) !important;
+  border-color: var(--app-accent) !important;
+}
+
+/* Element list hover transitions */
+.hover\:bg-slate-50:hover,
+.dark\:hover\:bg-slate-900\/50:hover,
+.dark\:hover\:bg-slate-900\/30:hover,
+.hover\:bg-slate-100:hover,
+.hover\:bg-slate-50\/50:hover {
+  background-color: var(--app-accent-light) !important;
+  color: var(--app-accent) !important;
+}
+
+/* Input, textareas, selects globally */
+input, textarea, select {
+  background-color: var(--app-bg) !important;
+  color: var(--app-text) !important;
+  border-color: var(--app-border) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: var(--app-text-muted) !important;
+  opacity: 0.7;
+}
+
+select option {
+  background-color: var(--app-card) !important;
+  color: var(--app-text) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   HIGH-FIDELITY ACADEMIC PRINT SYSTEM (PDF EXPORT)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media print {
+  /* Hide all app layouts & sidebars */
+  body, html, main, div, aside, header, nav, button, footer {
+    background: white !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
+  
+  /* Hide everything except print notes shell */
+  body > *:not(#print-notes-area-wrapper) {
+    display: none !important;
+  }
+
+  #print-notes-area-wrapper {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Isolate notes area and format for letter-size printing */
+  #print-notes-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  #print-notes-area * {
+    visibility: visible !important;
+    background: transparent !important;
+    color: #1a1a1a !important;
+  }
+
+  /* Exclude highlights options popover, sticky triggers in print */
+  #print-notes-area .absolute,
+  #print-notes-area .group-hover\:block,
+  #print-notes-area button,
+  #print-notes-area .sticky-note-btn {
+    display: none !important;
+  }
+
+  /* Keep premium typography sizing */
+  #print-notes-area h1 {
+    font-size: 26pt !important;
+    color: #000000 !important;
+    margin-top: 0 !important;
+    margin-bottom: 12pt !important;
+    page-break-after: avoid;
+  }
+
+  #print-notes-area h2 {
+    font-size: 18pt !important;
+    border-left: 4px solid #4f46e5 !important;
+    padding-left: 8pt !important;
+    margin-top: 24pt !important;
+    margin-bottom: 8pt !important;
+    page-break-after: avoid;
+  }
+
+  #print-notes-area h3 {
+    font-size: 14pt !important;
+    margin-top: 18pt !important;
+    margin-bottom: 6pt !important;
+    page-break-after: avoid;
+  }
+
+  #print-notes-area p, 
+  #print-notes-area li, 
+  #print-notes-area td {
+    font-size: 10.5pt !important;
+    line-height: 1.6 !important;
+    text-align: justify !important;
+  }
+
+  /* Style Blockquotes */
+  #print-notes-area .border-l-4 {
+    border-left-color: #f59e0b !important;
+    background-color: #fffbeb !important;
+    padding: 8pt 12pt !important;
+    margin: 12pt 0 !important;
+    border-radius: 4px !important;
+  }
+
+  /* Style tables for clean readability */
+  #print-notes-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 16pt 0 !important;
+  }
+
+  #print-notes-area th, 
+  #print-notes-area td {
+    border: 0.5pt solid #cccccc !important;
+    padding: 6pt 8pt !important;
+  }
+
+  #print-notes-area th {
+    background-color: #f3f4f6 !important;
+    font-weight: bold !important;
+  }
+
+  /* Pagination optimizations */
+  tr, img, li {
+    page-break-inside: avoid;
+  }
+}
+

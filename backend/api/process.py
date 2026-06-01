@@ -17,7 +17,7 @@ async def process_subject(subject: str):
     Start background ingestion for all pending items of a subject.
     Returns immediately with a task_id for progress tracking.
     """
-    if not has_pending(subject):
+    if not await has_pending(subject):
         return {
             "success": True,
             "task_id": None,
@@ -46,7 +46,7 @@ async def process_subject(subject: str):
 
 async def _run_pipeline(task_id: str, subject: str):
     try:
-        pending_items = get_pending(subject)
+        pending_items = await get_pending(subject)
         total = len(pending_items)
         await update_task(task_id, status="running", items_total=total)
 
@@ -109,7 +109,7 @@ async def _run_pipeline(task_id: str, subject: str):
                 logger.error(f"[Process] Pipeline failed for {subject}/{topic}: {e}")
                 all_errors.append(str(e))
 
-        clear_pending(subject)
+        await clear_pending(subject)
 
         await update_task(
             task_id,

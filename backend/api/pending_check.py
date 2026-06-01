@@ -13,15 +13,15 @@ async def check_pending(subject: str):
     """Check if a subject has pending items waiting to be processed."""
     return {
         "subject": subject,
-        "has_pending": has_pending(subject),
+        "has_pending": await has_pending(subject),
     }
 
 
 @router.get("/api/pending")
 async def list_pending():
     """List all subjects with pending items and total count."""
-    subjects = all_pending_subjects()
+    subjects = await all_pending_subjects()
     return {
         "subjects": subjects,
-        "total": count_pending(),
+        "total": await count_pending(),
     }

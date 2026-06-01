@@ -17,7 +17,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import LoadingState from "@/components/LoadingState";
 import EmptyState from "@/components/EmptyState";
-import StatusBadge from "@/components/StatusBadge";
 import {
   Network,
   Search,

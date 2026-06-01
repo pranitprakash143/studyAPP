@@ -160,8 +160,8 @@
 
 /* Force active variables globally on body */
 body {
-  background-color: var(--app-bg) !important;
-  color: var(--app-text) !important;
+  background-color: var(--app-bg, #f8fafc) !important;
+  color: var(--app-text, #0f172a) !important;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
 
@@ -179,7 +179,7 @@ html.theme-ocean .bg-slate-50,
 html.theme-dark .bg-slate-50,
 .bg-slate-50,
 .bg-slate-950 {
-  background-color: var(--app-bg) !important;
+  background-color: var(--app-bg, #f8fafc) !important;
 }
 
 /* Card Background Overrides */
@@ -203,7 +203,7 @@ html.theme-dark .bg-white,
 .bg-white\/75,
 .bg-white\/80,
 .bg-white\/70 {
-  background-color: var(--app-card) !important;
+  background-color: var(--app-card, #ffffff) !important;
 }
 
 /* Input boxes & sub-elements */
@@ -213,7 +213,7 @@ html.theme-ocean .dark\:bg-\[\#151c2f\]\/40,
 html.theme-dark .dark\:bg-\[\#151c2f\]\/40,
 .bg-slate-50\/50,
 .bg-slate-100 {
-  background-color: var(--app-bg) !important;
+  background-color: var(--app-bg, #f8fafc) !important;
 }
 
 /* Primary text colors */
@@ -228,7 +228,7 @@ html.theme-forest .dark\:text-slate-200,
 html.theme-ocean .dark\:text-slate-200,
 .text-slate-900,
 .text-slate-800 {
-  color: var(--app-text) !important;
+  color: var(--app-text, #0f172a) !important;
 }
 
 /* Muted secondary text colors */
@@ -240,7 +240,7 @@ html.theme-forest .dark\:text-slate-500,
 html.theme-ocean .dark\:text-slate-500,
 .text-slate-400,
 .text-slate-500 {
-  color: var(--app-text-muted) !important;
+  color: var(--app-text-muted, #64748b) !important;
 }
 
 /* Border overrides */
@@ -255,7 +255,7 @@ html.theme-forest .dark\:border-slate-700,
 html.theme-ocean .dark\:border-slate-700,
 .border-slate-200,
 .border-slate-200\/50 {
-  border-color: var(--app-border) !important;
+  border-color: var(--app-border, #e2e8f0) !important;
 }
 
 /* Accents & buttons colors overrides */
@@ -265,26 +265,26 @@ html.theme-ocean .dark\:text-indigo-400,
 .text-indigo-650,
 .text-indigo-600,
 .text-indigo-500 {
-  color: var(--app-accent) !important;
+  color: var(--app-accent, #4f46e5) !important;
 }
 
 .bg-indigo-650,
 .bg-indigo-600,
 .bg-indigo-500 {
-  background-color: var(--app-accent) !important;
+  background-color: var(--app-accent, #4f46e5) !important;
 }
 
 .bg-indigo-650:hover,
 .bg-indigo-600:hover,
 .bg-indigo-500:hover {
-  background-color: var(--app-accent-hover) !important;
+  background-color: var(--app-accent-hover, #4338ca) !important;
 }
 
 /* Sidebar & header card bodies */
 aside, header {
-  background-color: var(--app-card) !important;
-  border-color: var(--app-border) !important;
-  color: var(--app-text) !important;
+  background-color: var(--app-card, #ffffff) !important;
+  border-color: var(--app-border, #e2e8f0) !important;
+  color: var(--app-text, #0f172a) !important;
 }
 
 /* Sidebar active navigation pills */
@@ -293,9 +293,9 @@ html.theme-sepia .dark\:bg-indigo-950\/40,
 html.theme-forest .dark\:bg-indigo-950\/40,
 html.theme-ocean .dark\:bg-indigo-950\/40,
 html.theme-dark .dark\:bg-indigo-950\/40 {
-  background-color: var(--app-accent-light) !important;
-  color: var(--app-accent) !important;
-  border-color: var(--app-accent) !important;
+  background-color: var(--app-accent-light, #e0e7ff) !important;
+  color: var(--app-accent, #4f46e5) !important;
+  border-color: var(--app-accent, #4f46e5) !important;
 }
 
 /* Element list hover transitions */
@@ -304,24 +304,24 @@ html.theme-dark .dark\:bg-indigo-950\/40 {
 .dark\:hover\:bg-slate-900\/30:hover,
 .hover\:bg-slate-100:hover,
 .hover\:bg-slate-50\/50:hover {
-  background-color: var(--app-accent-light) !important;
-  color: var(--app-accent) !important;
+  background-color: var(--app-accent-light, #e0e7ff) !important;
+  color: var(--app-accent, #4f46e5) !important;
 }
 
 /* Input, textareas, selects globally */
 input, textarea, select {
-  background-color: var(--app-bg) !important;
-  color: var(--app-text) !important;
-  border-color: var(--app-border) !important;
+  background-color: var(--app-bg, #f8fafc) !important;
+  color: var(--app-text, #0f172a) !important;
+  border-color: var(--app-border, #e2e8f0) !important;
 }
 input::placeholder, textarea::placeholder {
-  color: var(--app-text-muted) !important;
+  color: var(--app-text-muted, #64748b) !important;
   opacity: 0.7;
 }
 
 select option {
-  background-color: var(--app-card) !important;
-  color: var(--app-text) !important;
+  background-color: var(--app-card, #ffffff) !important;
+  color: var(--app-text, #0f172a) !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

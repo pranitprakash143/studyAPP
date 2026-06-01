@@ -83,7 +83,7 @@ export default function CustomDropdown({
           <span className="truncate">{selectedOption ? selectedOption.label : placeholder}</span>
         </span>
         <ChevronDown
-          className={`h-4 w-4 text-slate-400 dark:text-slate-500 transition-transform duration-250 shrink-0 ${
+          className={`h-4 w-4 text-slate-400 dark:text-slate-500 transition-transform duration-200 shrink-0 ${
             isOpen ? "transform rotate-180 text-indigo-500" : ""
           }`}
         />

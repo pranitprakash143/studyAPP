@@ -3,11 +3,6 @@
 import { useState } from "react";
 import PageLayout from "@/components/PageLayout";
 import PageHeader from "@/components/PageHeader";
-import Card from "@/components/Card";
-import LoadingState from "@/components/LoadingState";
-import ErrorAlert from "@/components/ErrorAlert";
-import StatusBadge from "@/components/StatusBadge";
-import TabGroup from "@/components/TabGroup";
 import {
   BarChart2,
   FileText,

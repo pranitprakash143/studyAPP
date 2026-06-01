@@ -10,8 +10,6 @@ import {
   Award,
   BarChart2,
   Settings as SettingsIcon,
-  Sun,
-  Moon,
   LayoutDashboard,
   MessageSquare,
   Database,
@@ -19,6 +17,7 @@ import {
   ChevronRight,
   Palette,
   Network,
+  Newspaper,
 } from "lucide-react";
 import { useAIConfig } from "@/contexts/AIConfigContext";
 import CustomDropdown from "@/components/CustomDropdown";
@@ -81,6 +80,7 @@ export default function Sidebar() {
     { name: "Upload Materials", href: "/upload", icon: UploadCloud },
     { name: "Study Notes", href: "/notes", icon: BookOpen },
     { name: "Quiz Engine", href: "/quiz", icon: Award },
+    { name: "Current Affairs", href: "/current-affairs", icon: Newspaper },
     { name: "Socratic Coach", href: "/socratic", icon: MessageSquare },
     { name: "PYQ Analysis", href: "/pyq", icon: BarChart2 },
     { name: "Wiki Explorer", href: "/wiki", icon: Network },

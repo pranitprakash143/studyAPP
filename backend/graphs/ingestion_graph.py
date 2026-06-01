@@ -28,21 +28,22 @@ from parsers.structure_extractor import HeuristicStructureExtractor
 
 logger = logging.getLogger(__name__)
 
-_progress_callback = None
+import contextvars
+
+_progress_callback_var = contextvars.ContextVar("progress_callback", default=None)
 
 
 def set_progress_callback(cb):
-    global _progress_callback
-    _progress_callback = cb
+    return _progress_callback_var.set(cb)
 
 
-def clear_progress_callback():
-    global _progress_callback
-    _progress_callback = None
+def clear_progress_callback(token):
+    if token:
+        _progress_callback_var.reset(token)
 
 
 async def _report_progress(node: str, pct: int, status: str = "running"):
-    cb = _progress_callback
+    cb = _progress_callback_var.get()
     if cb:
         await cb(node, pct, status)
 
@@ -104,13 +105,6 @@ class IngestionState(TypedDict, total=False):
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _safe_parse_json(text: str) -> Any:
-    """Strip markdown fences and parse JSON."""
-    cleaned = text.strip()
-    cleaned = re.sub(r"^```(?:json)?", "", cleaned).rstrip("```").strip()
-    return json.loads(cleaned)
-
-
 def _clean_text(raw: str) -> str:
     """
     Deterministic text cleanup:
@@ -125,101 +119,6 @@ def _clean_text(raw: str) -> str:
     text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", text)  # control chars
     text = re.sub(r"\n{4,}", "\n\n\n", text)  # collapse excessive blank lines
     return text.strip()
-
-
-def _score_text_for_title(text: str, title: str) -> float:
-    """Keyword-overlap score (pure Python, zero LLM)."""
-    stop = {
-        "the",
-        "a",
-        "an",
-        "of",
-        "and",
-        "or",
-        "in",
-        "on",
-        "at",
-        "to",
-        "for",
-        "with",
-        "by",
-        "from",
-        "is",
-        "was",
-        "are",
-        "were",
-        "be",
-    }
-    title_tokens = {
-        w.lower()
-        for w in re.findall(r"\b\w+\b", title)
-        if w.lower() not in stop and len(w) > 2
-    }
-    if not title_tokens:
-        return 0.0
-    text_lower = text.lower()
-    hits = sum(1 for t in title_tokens if t in text_lower)
-    return hits / len(title_tokens)
-
-
-def _split_at_subtopic_headers(
-    formatted_content: str, chapter_title: str
-) -> list[dict]:
-    """
-    Scan formatted Markdown for ## subtopic headers and split into subtopic chunks.
-    Falls back to single chapter-level chunk if no subtopic headers found.
-    """
-    lines = formatted_content.split("\n")
-    subtopic_groups: list[dict] = []
-    current_subtopic: str | None = None
-    current_lines: list[str] = []
-
-    for line in lines:
-        if line.startswith("## ") and not line.startswith("### "):
-            if current_subtopic is not None and current_lines:
-                subtopic_groups.append(
-                    {
-                        "chapter_title": chapter_title,
-                        "subtopic_title": current_subtopic,
-                        "content": "\n".join(current_lines).strip(),
-                    }
-                )
-            current_subtopic = line[3:].strip()
-            current_lines = [line]
-        else:
-            current_lines.append(line)
-
-    if current_subtopic is not None and current_lines:
-        subtopic_groups.append(
-            {
-                "chapter_title": chapter_title,
-                "subtopic_title": current_subtopic,
-                "content": "\n".join(current_lines).strip(),
-            }
-        )
-
-    if not subtopic_groups:
-        subtopic_groups.append(
-            {
-                "chapter_title": chapter_title,
-                "subtopic_title": chapter_title,
-                "content": formatted_content,
-            }
-        )
-
-    return [g for g in subtopic_groups if g["content"]]
-
-
-def _build_fallback_structure(raw: str) -> dict:
-    """Build a minimal structural map when AI analysis fails."""
-    return {
-        "chapters": [
-            {"title": "Full Document", "start": 0, "end": len(raw), "subtopics": []}
-        ],
-        "document_type": "unknown",
-        "key_themes": [],
-        "glossary_terms": [],
-    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -568,7 +467,7 @@ async def format_chapters(state: IngestionState) -> dict:
             if not raw_content:
                 continue
 
-            markdown_parts.append(f"## {sub_title}\n{raw_content}\n")
+            markdown_parts.append(f"## {sub_title}\n\n{raw_content}\n")
 
             # Map chunk for vector store
             chapter_sub_chunks.append(
@@ -622,6 +521,7 @@ async def save_to_chroma(state: IngestionState) -> dict:
         # Sync to local markdown binder file (Single Source of Truth)
         try:
             import os
+
             binders_dir = os.path.join("knowledge_base", "binders")
             os.makedirs(binders_dir, exist_ok=True)
             filepath = os.path.join(binders_dir, f"{subject}.md")
@@ -652,16 +552,20 @@ async def save_to_chroma(state: IngestionState) -> dict:
                     sub_title = sub.get("subtopic_title", "")
                     sub_content = sub.get("content", "").strip()
                     if sub_content:
-                        new_chapters_markdown += f"### {sub_title}\n{sub_content}\n\n"
+                        new_chapters_markdown += f"### {sub_title}\n\n{sub_content}\n\n"
                 new_chapters_markdown += "---\n"
 
             updated_content = existing_content + new_chapters_markdown
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(updated_content.strip() + "\n")
 
-            logger.info(f"[Ingestion File Sync] Synced {len(chapters_dict)} chapters to local binder file '{filepath}'")
+            logger.info(
+                f"[Ingestion File Sync] Synced {len(chapters_dict)} chapters to local binder file '{filepath}'"
+            )
         except Exception as file_err:
-            logger.error(f"[Ingestion File Sync] Failed to write binder file: {file_err}")
+            logger.error(
+                f"[Ingestion File Sync] Failed to write binder file: {file_err}"
+            )
 
         count = await upsert_chunks(chunks, subject, topic, source)
         logger.info(f"[Node 8] Saved {count} subtopic chunks to ChromaDB")
@@ -770,12 +674,14 @@ async def run_ingestion(
         "errors": [],
     }
 
+    token = None
     if progress_callback:
-        set_progress_callback(progress_callback)
+        token = set_progress_callback(progress_callback)
     try:
         final = await ingestion_graph.ainvoke(initial)
     finally:
-        clear_progress_callback()
+        if progress_callback and token:
+            clear_progress_callback(token)
 
     return {
         "chapters": final.get("formatted_chapters", []),

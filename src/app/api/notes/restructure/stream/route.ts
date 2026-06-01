@@ -1,5 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getAIConfigFromRequest } from "@/lib/ai-provider";
+import {
+  buildProviderConfig,
+  buildGeminiStreamUrl,
+  createGeminiSSEStream,
+  createOpenAICompatibleSSEStream,
+  createStreamingResponse,
+  streamErrorResponse,
+} from "@/lib/stream-utils";
 
 export const runtime = "nodejs";
 
@@ -10,10 +18,7 @@ export async function POST(req: NextRequest) {
     const { text, style, customInstruction } = body;
 
     if (!text) {
-      return NextResponse.json(
-        { success: false, error: "Text to restructure is required." },
-        { status: 400 }
-      );
+      return streamErrorResponse("Text to restructure is required.", 400);
     }
 
     const systemPrompt = `You are an expert academic editor, text restructuring engine, and strict factual preservation guard.
@@ -45,212 +50,98 @@ Generate the beautifully organized, factually correct, and structured markdown n
     // 1. Cloud Mode (Gemini API)
     if (config.provider === "cloud") {
       if (!config.geminiApiKey) {
-        return NextResponse.json(
-          { success: false, error: "Gemini API key is required when in Cloud AI mode." },
-          { status: 400 }
-        );
+        return streamErrorResponse("Gemini API key is required when in Cloud AI mode.", 400);
       }
 
       const model = config.geminiModel || "gemini-2.5-flash";
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.geminiApiKey}`;
+      const url = buildGeminiStreamUrl(config.geminiApiKey, model);
 
       const contents = [{
         role: "user",
         parts: [{ text: prompt }]
       }];
 
-      const requestBody: any = {
+      const requestBody: Record<string, unknown> = {
         contents,
         systemInstruction: {
           parts: [{ text: systemPrompt }]
         }
       };
 
-      let response;
+      let response: Response;
       try {
         response = await fetch(url, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(requestBody),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Fetch error to Gemini API:", err);
-        return NextResponse.json(
-          { success: false, error: `Failed to connect to Gemini API: ${err.message}` },
-          { status: 500 }
-        );
+        const message = err instanceof Error ? err.message : "Unknown error";
+        return streamErrorResponse(`Failed to connect to Gemini API: ${message}`);
       }
 
       if (!response.ok) {
         const errorText = await response.text();
-        return NextResponse.json(
-          { success: false, error: `Gemini Stream API error: ${errorText}` },
-          { status: response.status }
-        );
+        return streamErrorResponse(`Gemini Stream API error: ${errorText}`, response.status);
       }
 
-      const encoder = new TextEncoder();
-      const decoder = new TextDecoder();
-      const reader = response.body?.getReader();
-
-      const customStream = new ReadableStream({
-        async start(controller) {
-          if (!reader) {
-            controller.close();
-            return;
-          }
-          let buffer = "";
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split("\n");
-              buffer = lines.pop() || "";
-
-              for (const line of lines) {
-                const trimmed = line.trim();
-                if (trimmed.startsWith("data:")) {
-                  const dataStr = trimmed.substring(5).trim();
-                  try {
-                    const dataJson = JSON.parse(dataStr);
-                    const partText = dataJson.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (partText) {
-                      controller.enqueue(encoder.encode(partText));
-                    }
-                  } catch (e) {
-                    // Ignore parse errors
-                  }
-                }
-              }
-            }
-          } catch (error: any) {
-            console.error("Gemini stream reading error:", error);
-            controller.error(error);
-          } finally {
-            reader.releaseLock();
-            controller.close();
-          }
-        }
-      });
-
-      return new Response(customStream, {
-        headers: {
-          "Content-Type": "text/event-stream; charset=utf-8",
-          "Cache-Control": "no-cache, no-transform",
-          "Connection": "keep-alive",
-        },
-      });
-
-    } else {
-      // 2. Local Mode (LM Studio OpenAI compatible stream)
-      const endpoint = config.lmStudioEndpoint || "http://localhost:1234/v1";
-      const url = `${endpoint.endsWith("/") ? endpoint : endpoint + "/"}chat/completions`;
-
-      const messages = [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: prompt }
-      ];
-
-      const requestBody = {
-        model: config.lmStudioModel || "local-model",
-        messages,
-        temperature: 0.2,
-        stream: true,
-      };
-
-      let response;
-      try {
-        response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        });
-      } catch (err: any) {
-        console.error("Fetch error to Local AI API:", err);
-        if (err.cause?.code === 'ECONNREFUSED') {
-          return NextResponse.json(
-            { success: false, error: `Could not connect to local AI at ${endpoint}. Please ensure LM Studio is running and the Local Server is started on port 1234.` },
-            { status: 500 }
-          );
-        }
-        return NextResponse.json(
-          { success: false, error: `Failed to connect to local AI: ${err.message}` },
-          { status: 500 }
-        );
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        return NextResponse.json(
-          { success: false, error: `LM Studio Stream error: ${errorText}` },
-          { status: response.status }
-        );
-      }
-
-      const encoder = new TextEncoder();
-      const decoder = new TextDecoder();
-      const reader = response.body?.getReader();
-
-      const customStream = new ReadableStream({
-        async start(controller) {
-          if (!reader) {
-            controller.close();
-            return;
-          }
-          let buffer = "";
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-
-              buffer += decoder.decode(value, { stream: true });
-              const lines = buffer.split("\n");
-              buffer = lines.pop() || "";
-
-              for (const line of lines) {
-                const trimmed = line.trim();
-                if (trimmed.startsWith("data:")) {
-                  const dataStr = trimmed.substring(5).trim();
-                  if (dataStr === "[DONE]") continue;
-                  try {
-                    const dataJson = JSON.parse(dataStr);
-                    const deltaText = dataJson.choices?.[0]?.delta?.content;
-                    if (deltaText) {
-                      controller.enqueue(encoder.encode(deltaText));
-                    }
-                  } catch (e) {
-                    // Ignore parse errors
-                  }
-                }
-              }
-            }
-          } catch (error: any) {
-            console.error("LM Studio stream reading error:", error);
-            controller.error(error);
-          } finally {
-            reader.releaseLock();
-            controller.close();
-          }
-        }
-      });
-
-      return new Response(customStream, {
-        headers: {
-          "Content-Type": "text/event-stream; charset=utf-8",
-          "Cache-Control": "no-cache, no-transform",
-          "Connection": "keep-alive",
-        },
-      });
+      const stream = createGeminiSSEStream(response);
+      return createStreamingResponse(stream);
     }
 
-  } catch (error: any) {
-    console.error("[Next.js POST /api/notes/restructure/stream]", error.message);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    // 2. OpenAI-compatible providers + LM Studio
+    const providerConfig = buildProviderConfig(config);
+    const url = `${providerConfig.baseUrl.endsWith("/") ? providerConfig.baseUrl : providerConfig.baseUrl + "/"}chat/completions`;
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: prompt }
+    ];
+
+    const requestBody: Record<string, unknown> = {
+      model: providerConfig.model,
+      messages,
+      temperature: 0.2,
+      stream: true,
+    };
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...providerConfig.headers,
+        },
+        body: JSON.stringify(requestBody),
+      });
+    } catch (err: unknown) {
+      console.error(`Fetch error to ${config.provider} API:`, err);
+      const message = err instanceof Error ? err.message : "Unknown error";
+      if (config.provider === "local" && err instanceof Error && (err.cause as { code?: string })?.code === "ECONNREFUSED") {
+        const endpoint = config.lmStudioEndpoint || "http://localhost:1234/v1";
+        return streamErrorResponse(
+          `Could not connect to local AI at ${endpoint}. Please ensure LM Studio is running and the Local Server is started on port 1234.`
+        );
+      }
+      return streamErrorResponse(`Failed to connect to ${config.provider}: ${message}`);
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return streamErrorResponse(
+        `${config.provider} Stream error (${response.status}): ${errorText}`,
+        response.status
+      );
+    }
+
+    const stream = createOpenAICompatibleSSEStream(response);
+    return createStreamingResponse(stream);
+
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Next.js POST /api/notes/restructure/stream]", message);
+    return streamErrorResponse(message);
   }
 }

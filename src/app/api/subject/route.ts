@@ -7,7 +7,6 @@
  * DELETE → Deletes subject or topic from ChromaDB via FastAPI
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getAIConfigFromRequest } from "@/lib/ai-provider";
 import { getSubjectChunks, deleteSubject, saveSubjectNotesDirectly } from "@/lib/backend-client";
 
 const BACKEND_URL =
@@ -20,6 +19,12 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const subject = searchParams.get("subject");
+
+    // Gather and forward custom headers for AI credentials
+    const customHeaders: Record<string, string> = {};
+    req.headers.forEach((val, key) => {
+      if (key.startsWith("x-")) customHeaders[key] = val;
+    });
 
     if (!subject) {
       return NextResponse.json(
@@ -54,6 +59,7 @@ export async function GET(req: NextRequest) {
     // Check if there are pending items for this subject
     const pendingRes = await fetch(`${BACKEND_URL}/api/pending/${encodeURIComponent(subject)}`, {
       cache: "no-store",
+      headers: customHeaders,
     });
     const pendingData = await pendingRes.json();
 
@@ -61,6 +67,7 @@ export async function GET(req: NextRequest) {
       // Start processing in background
       const processRes = await fetch(`${BACKEND_URL}/api/process/${encodeURIComponent(subject)}`, {
         method: "POST",
+        headers: customHeaders,
       });
       const processData = await processRes.json();
 

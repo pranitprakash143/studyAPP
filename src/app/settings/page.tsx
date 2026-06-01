@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import PageLayout from "@/components/PageLayout";
 import PageHeader from "@/components/PageHeader";
-import Card from "@/components/Card";
 import LoadingState from "@/components/LoadingState";
-import ErrorAlert from "@/components/ErrorAlert";
-import StatusBadge from "@/components/StatusBadge";
 import {
   Settings as SettingsIcon,
   Shield,
@@ -28,39 +25,49 @@ export default function Settings() {
   const { settings, updateSettings, aiHeaders, isHydrated } = useAIConfig();
 
   const geminiModels = [
-    { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash (Standard - Default)", icon: "⚡" },
-    { value: "gemini-2.0-pro-exp-02-05", label: "Gemini 2.0 Pro (Complex Reasoning)", icon: "🧠" },
+    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash (Fast & Free Tier - Default)", icon: "⚡" },
+    { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash-Lite (Cheapest)", icon: "✨" },
+    { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro (Complex Reasoning - Paid)", icon: "🧠" },
   ];
   
   const openaiModels = [
-    { value: "gpt-4o-mini", label: "GPT-4o Mini (Ultra Fast - Default)", icon: "⚡" },
-    { value: "gpt-4o", label: "GPT-4o (High Intelligence & Reasoning)", icon: "🧠" },
-    { value: "o1-mini", label: "O1 Mini (Complex Reasoning & STEM)", icon: "🚀" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini (Cheapest - Default)", icon: "⚡" },
+    { value: "gpt-4o", label: "GPT-4o (Fast & Intelligent)", icon: "🚀" },
+    { value: "gpt-5.4-nano", label: "GPT-5.4 Nano (Ultra Cheap, High Volume)", icon: "✨" },
+    { value: "gpt-5.4-mini", label: "GPT-5.4 Mini (Best Value)", icon: "⚡" },
   ];
 
   const groqModels = [
     { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B (Versatile - Default)", icon: "🧠" },
-    { value: "llama-3.1-8b-instant", label: "Llama 3.1 8B (Instant)", icon: "⚡" },
+    { value: "llama-3.1-8b-instant", label: "Llama 3.1 8B (Fastest)", icon: "⚡" },
     { value: "mixtral-8x7b-32768", label: "Mixtral 8x7B (High Context)", icon: "🚀" },
-    { value: "gemma2-9b-it", label: "Gemma 2 9B (Google Open Weights)", icon: "🌟" },
+    { value: "gemma2-9b-it", label: "Gemma 2 9B (Google Open)", icon: "🌟" },
+    { value: "llama-4-scout-17b-16e-instruct", label: "Llama 4 Scout 17B (Latest)", icon: "🆕" },
+    { value: "qwen-qwen3-32b", label: "Qwen3 32B (Strong Reasoning)", icon: "🧠" },
   ];
 
   const openrouterModels = [
     { value: "openrouter/free", label: "OpenRouter Free (Auto-Routes - Default)", icon: "🤖" },
-    { value: "google/gemma-2-9b-it:free", label: "Gemma 2 9B Free", icon: "🌟" },
-    { value: "meta-llama/llama-3-8b-instruct:free", label: "Llama 3 8B Free", icon: "⚡" },
-    { value: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B Free", icon: "🚀" },
+    { value: "openai/gpt-oss-120b:free", label: "GPT-OSS 120B Free", icon: "🧠" },
+    { value: "openai/gpt-oss-20b:free", label: "GPT-OSS 20B Free", icon: "⚡" },
+    { value: "deepseek/deepseek-v4-flash:free", label: "DeepSeek V4 Flash Free", icon: "🚀" },
+    { value: "google/gemma-4-31b-it:free", label: "Gemma 4 31B Free", icon: "🌟" },
+    { value: "meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B Free", icon: "🧠" },
+    { value: "qwen/qwen3-coder:free", label: "Qwen3 Coder Free", icon: "💻" },
+    { value: "nvidia/nemotron-3-super-120b-a12b:free", label: "Nemotron 3 Super 120B Free", icon: "🆕" },
   ];
 
   const mistralModels = [
     { value: "mistral-small-latest", label: "Mistral Small (Fast - Default)", icon: "⚡" },
     { value: "mistral-large-latest", label: "Mistral Large (High Intelligence)", icon: "🧠" },
     { value: "codestral-latest", label: "Codestral (Coding Specialist)", icon: "💻" },
+    { value: "ministral-3b-latest", label: "Ministral 3B (Ultra Lightweight)", icon: "✨" },
   ];
 
   const deepseekModels = [
-    { value: "deepseek-v4-flash", label: "DeepSeek V4 Flash (Flagship Speed - Default)", icon: "⚡" },
+    { value: "deepseek-v4-flash", label: "DeepSeek V4 Flash (Flagship - Default)", icon: "⚡" },
     { value: "deepseek-v4-pro", label: "DeepSeek V4 Pro (Flagship Reasoning)", icon: "🧠" },
+    { value: "deepseek-chat", label: "DeepSeek V3 (Cheapest - Legacy)", icon: "✨" },
   ];
 
   const [testing, setTesting] = useState(false);
@@ -483,7 +490,7 @@ export default function Settings() {
                 </label>
                 <CustomDropdown
                   options={geminiModels}
-                  value={settings.geminiModel || "gemini-2.0-flash"}
+                  value={settings.geminiModel || "gemini-2.5-flash"}
                   onChange={(val) => handleChange("geminiModel", val)}
                 />
               </div>

@@ -224,31 +224,59 @@ class _OpenAIEmbedder:
         raise RuntimeError("OpenAI embeddings API error: Max retries exceeded for 429")
 
 
+class _FallbackEmbedder:
+    """Tries embedders in order, falling through on failure."""
+
+    def __init__(self, embedders: list):
+        self._embedders = embedders
+
+    async def __call__(self, input: list[str]) -> list[list[float]]:
+        errors = []
+        for emb in self._embedders:
+            try:
+                return await emb(input)
+            except Exception as e:
+                errors.append(f"{type(emb).__name__}: {e}")
+                logger.warning(
+                    f"[Embedder] {type(emb).__name__} failed, trying next: {e}"
+                )
+        raise RuntimeError(f"All embedders failed: {'; '.join(errors)}")
+
+
 def _get_embedder():
     from core.llm import get_resolved_ai_config
+
     config = get_resolved_ai_config()
     provider = config["provider"]
+    settings = get_settings()
 
     if provider == "openai":
         if not config["openai_key"]:
-            raise ValueError("OpenAI API Key is not set in request headers or settings.")
+            raise ValueError(
+                "OpenAI API Key is not set in request headers or settings."
+            )
         return _OpenAIEmbedder(api_key=config["openai_key"])
     elif provider == "cloud" or provider == "google":
         if not config["gemini_key"]:
             raise ValueError("GEMINI_API_KEY is not set.")
         return _GeminiEmbedder(api_key=config["gemini_key"])
     else:
-        # Fallback embedder logic for other providers (groq, openrouter, mistral, deepseek)
+        candidates = []
+
+        if config.get("openai_key"):
+            candidates.append(_OpenAIEmbedder(api_key=config["openai_key"]))
+
         if config.get("gemini_key"):
-            return _GeminiEmbedder(api_key=config["gemini_key"])
-        elif config.get("openai_key"):
-            return _OpenAIEmbedder(api_key=config["openai_key"])
-            
-        settings = get_settings()
-        return _OllamaEmbedder(
-            base_url=settings.ollama_base_url,
-            model="nomic-embed-text",
+            candidates.append(_GeminiEmbedder(api_key=config["gemini_key"]))
+
+        candidates.append(
+            _OllamaEmbedder(
+                base_url=settings.ollama_base_url,
+                model="nomic-embed-text",
+            )
         )
+
+        return _FallbackEmbedder(candidates)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -276,6 +304,7 @@ _collections_cache = {}
 def _get_collection():
     """Return the dynamic request-scoped ChromaDB collection based on provider."""
     from core.llm import get_resolved_ai_config
+
     config = get_resolved_ai_config()
     provider = config["provider"]
 

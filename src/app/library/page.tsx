@@ -2,29 +2,24 @@
 
 import { useEffect, useState } from "react";
 import PageLayout from "@/components/PageLayout";
-import PageHeader from "@/components/PageHeader";
-import Card from "@/components/Card";
-import LoadingState from "@/components/LoadingState";
-import EmptyState from "@/components/EmptyState";
-import ErrorAlert from "@/components/ErrorAlert";
-import StatusBadge from "@/components/StatusBadge";
 import {
   BookOpen,
   FileText,
   Search,
-  Loader2,
   Award,
-  Sparkles,
   BarChart2,
-  ExternalLink,
   ArrowRight,
-  Database,
-  Grid,
-  FileCode,
   Calendar,
   X,
   AlertTriangle,
   Trash2,
+  ExternalLink,
+  History,
+  Sparkles,
+  Layers,
+  Clock,
+  ChevronRight,
+  Library,
 } from "lucide-react";
 import { getAIHeaders } from "@/lib/settings";
 
@@ -62,55 +57,57 @@ interface PyqHit {
   sizeBytes: number;
 }
 
+const subjectThemes: Record<string, { gradient: string; icon: typeof BookOpen; lightBg: string }> = {
+  History: { gradient: "from-amber-600 to-orange-500", icon: History, lightBg: "bg-amber-50 dark:bg-amber-950/10" },
+  Geography: { gradient: "from-emerald-600 to-teal-500", icon: Layers, lightBg: "bg-emerald-50 dark:bg-emerald-950/10" },
+  Polity: { gradient: "from-indigo-600 to-blue-500", icon: BookOpen, lightBg: "bg-indigo-50 dark:bg-indigo-950/10" },
+  Economics: { gradient: "from-rose-600 to-pink-500", icon: BarChart2, lightBg: "bg-rose-50 dark:bg-rose-950/10" },
+  Environment: { gradient: "from-green-600 to-emerald-500", icon: Sparkles, lightBg: "bg-green-50 dark:bg-green-950/10" },
+  "Current Affairs": { gradient: "from-violet-600 to-purple-500", icon: Clock, lightBg: "bg-violet-50 dark:bg-violet-950/10" },
+  "Science & Tech": { gradient: "from-cyan-600 to-sky-500", icon: Layers, lightBg: "bg-cyan-50 dark:bg-cyan-950/10" },
+};
+
+function getSubjectTheme(subject: string) {
+  for (const [key, theme] of Object.entries(subjectThemes)) {
+    if (subject.startsWith(key) || subject.includes(key)) return theme;
+  }
+  return { gradient: "from-slate-600 to-slate-500", icon: BookOpen, lightBg: "bg-slate-50 dark:bg-slate-950/10" };
+}
+
 export default function LibraryExplorer() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchMode, setSearchMode] = useState(false);
   const [searching, setSearching] = useState(false);
 
-  // Grouped catalogs (Default State)
   const [studyNotes, setStudyNotes] = useState<StudyNote[]>([]);
   const [pyqBanks, setPyqBanks] = useState<PyqBank[]>([]);
 
-  // Search Results
   const [noteHits, setNoteHits] = useState<NoteHit[]>([]);
   const [pyqHits, setPyqHits] = useState<PyqHit[]>([]);
 
-  // Preview Drawer State
   const [previewItem, setPreviewItem] = useState<{ title: string; content: string } | null>(null);
 
   const fetchCatalog = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/library", {
-        headers: getAIHeaders(),
-      });
+      const res = await fetch("/api/library", { headers: getAIHeaders() });
       const data = await res.json();
       if (res.ok && data.success) {
         setStudyNotes(data.studyNotes || []);
         setPyqBanks(data.pyqBanks || []);
       }
-    } catch (e) {
-      console.error("Failed to load catalog:", e);
+    } catch {
+      console.error("Failed to load catalog");
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch catalogs on mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchCatalog();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
+  useEffect(() => { fetchCatalog() }, []);
 
-  // Handle deleting subject study notes
   const handleDeleteSubject = async (subject: string) => {
-    if (!window.confirm(`Are you absolutely sure you want to delete ALL study notes and mindmaps for the subject "${subject}"? This cannot be undone.`)) {
-      return;
-    }
-    
+    if (!window.confirm(`Delete ALL notes for "${subject}"? This cannot be undone.`)) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/subject?subject=${encodeURIComponent(subject)}`, {
@@ -118,25 +115,17 @@ export default function LibraryExplorer() {
         headers: getAIHeaders(),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        fetchCatalog();
-      } else {
-        alert(data.error || "Failed to delete subject notes.");
-      }
-    } catch (e) {
-      console.error("Failed to delete subject:", e);
-      alert("Network error deleting subject notes.");
+      if (res.ok && data.success) fetchCatalog();
+      else alert(data.error || "Failed to delete.");
+    } catch {
+      alert("Network error.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle deleting PYQ bank file
   const handleDeletePyq = async (fileName: string) => {
-    if (!window.confirm(`Are you absolutely sure you want to delete this past year question bank? This cannot be undone.`)) {
-      return;
-    }
-    
+    if (!window.confirm("Delete this past year question bank? This cannot be undone.")) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/pyq?fileName=${encodeURIComponent(fileName)}`, {
@@ -144,53 +133,38 @@ export default function LibraryExplorer() {
         headers: getAIHeaders(),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        fetchCatalog();
-      } else {
-        alert(data.error || "Failed to delete PYQ bank.");
-      }
-    } catch (e) {
-      console.error("Failed to delete PYQ bank:", e);
-      alert("Network error deleting PYQ bank.");
+      if (res.ok && data.success) fetchCatalog();
+      else alert(data.error || "Failed to delete.");
+    } catch {
+      alert("Network error.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Trigger search
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!searchQuery.trim()) {
-      setSearchMode(false);
-      return;
-    }
-
+    if (!searchQuery.trim()) { setSearchMode(false); return }
     setSearching(true);
     setSearchMode(true);
-
     try {
       const res = await fetch("/api/library", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAIHeaders(),
-        },
+        headers: { "Content-Type": "application/json", ...getAIHeaders() },
         body: JSON.stringify({ query: searchQuery.trim() }),
       });
-
       const data = await res.json();
       if (res.ok && data.success) {
         setNoteHits(data.noteHits || []);
         setPyqHits(data.pyqHits || []);
       }
-    } catch (e) {
-      console.error("Search failed:", e);
+    } catch {
+      console.error("Search failed");
     } finally {
       setSearching(false);
     }
   };
 
-  // Handle clearing search
   const handleClearSearch = () => {
     setSearchQuery("");
     setSearchMode(false);
@@ -198,361 +172,405 @@ export default function LibraryExplorer() {
     setPyqHits([]);
   };
 
-  // Handle viewing raw PYQ markdown content preview
-  const handlePreviewPYQ = async (bank: PyqBank) => {
-    setLoading(true);
-    try {
-      // Direct raw GET call to fetch notes content if needed, 
-      // but to keep it unified, we already pass preview text in contentPreview!
-      setPreviewItem({
-        title: `PYQ Bank: ${bank.subject} (${bank.paperCount} Papers)`,
-        content: bank.contentPreview || "This past paper is currently empty.",
-      });
-    } catch (err) {
-      console.error("Failed to load preview:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const subjectCount = studyNotes.length;
+  const pyqCount = pyqBanks.length;
 
   return (
     <PageLayout maxWidth="6xl">
-      <PageHeader
-        icon={<Database className="h-7 w-7 text-indigo-500" />}
-        title="Master Library Index"
-        description="Explore grouped catalogs of all your study files, revision sheets, and past year question banks."
-      />
+      <div className="relative mb-10">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <Library className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Study Library
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Compiled notes &amp; past paper archives
+              </p>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50">
+              <span className="w-2 h-2 rounded-full bg-indigo-500" />
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{subjectCount} subjects</span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{pyqCount} archives</span>
+            </div>
+          </div>
+        </div>
+        <div className="mt-5 h-px bg-gradient-to-r from-indigo-500 via-slate-200 dark:via-slate-800 to-transparent" />
+      </div>
 
-        {/* Global Search Bar */}
-        <form
-          onSubmit={handleSearch}
-          className="bg-white/80 dark:bg-[#111726]/60 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-md flex items-center gap-3 mb-8 w-full max-w-4xl mx-auto"
-        >
-          <Search className="h-5 w-5 text-slate-400 shrink-0 ml-1" />
+      <form onSubmit={handleSearch} className="relative mb-10">
+        <div className="flex items-center gap-3 px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm transition-all duration-200 focus-within:shadow-md focus-within:border-indigo-300 dark:focus-within:border-indigo-700">
+          <Search className="h-4 w-4 shrink-0 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search keywords across notes, study chapters, and past year papers..."
-            className="flex-1 bg-transparent border-none text-slate-800 dark:text-white focus:outline-none text-sm"
+            placeholder="Search across notes, chapters, and past papers..."
+            className="flex-1 bg-transparent border-none focus:outline-none text-sm text-slate-900 dark:text-white placeholder:text-slate-400"
           />
           {searchQuery && (
-            <button
-              type="button"
-              onClick={handleClearSearch}
-              className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 rounded-full transition"
-            >
-              <X className="h-4 w-4" />
+            <button type="button" onClick={handleClearSearch} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+              <X className="h-3.5 w-3.5 text-slate-400" />
             </button>
           )}
-          <button
-            type="submit"
-            className="bg-indigo-600 hover:bg-indigo-600 text-white text-xs font-bold px-5 py-2 rounded-xl shadow-sm transition"
-          >
-            Full Library Search
+          <button type="submit"
+            className="px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-sm cursor-pointer">
+            Search
           </button>
-        </form>
+        </div>
+      </form>
 
-        {loading && studyNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-24 text-center">
-            <Loader2 className="h-10 w-10 animate-spin text-indigo-500 mb-3" />
-            <span className="text-xs text-slate-400 dark:text-slate-500">Compiling library catalogs...</span>
+      {loading && studyNotes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-32 text-center">
+          <div className="h-10 w-10 rounded-full border-2 border-slate-200 dark:border-slate-700 border-t-indigo-500 animate-spin" />
+          <p className="mt-4 text-xs font-medium text-slate-500 dark:text-slate-400">Gathering the collection...</p>
+        </div>
+      ) : searchMode ? (
+        <div className="space-y-8 animate-fade-in">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+            <h2 className="text-lg font-bold tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
+              <span className="inline-block w-2 h-2 rounded bg-indigo-500" />
+              Results for &ldquo;{searchQuery}&rdquo;
+            </h2>
+            <button onClick={handleClearSearch}
+              className="text-[11px] font-bold tracking-wider text-indigo-600 hover:text-indigo-500 transition cursor-pointer">
+              &larr; Back to catalog
+            </button>
           </div>
-        ) : searchMode ? (
-          /* SEARCH RESULTS VIEW */
-          <div className="space-y-8">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Sparkles className="h-4.5 w-4.5 text-indigo-500 animate-pulse" />
-                Search Results for &ldquo;{searchQuery}&rdquo;
-              </h2>
-              <button
-                onClick={handleClearSearch}
-                className="text-xs font-bold text-indigo-500 hover:text-indigo-400"
-              >
-                Back to All Library Catalog
-              </button>
+
+          {searching ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="h-7 w-7 rounded-full border-2 border-slate-200 dark:border-slate-700 border-t-indigo-500 animate-spin" />
+              <p className="mt-3 text-xs font-medium text-slate-500">Searching both databases...</p>
             </div>
-
-            {searching ? (
-              <div className="flex flex-col items-center justify-center p-12 text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-2" />
-                <span className="text-xs text-slate-400 dark:text-slate-500">Searching both databases...</span>
+          ) : noteHits.length === 0 && pyqHits.length === 0 ? (
+            <div className="py-20 text-center max-w-md mx-auto">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-slate-400" />
               </div>
-            ) : noteHits.length === 0 && pyqHits.length === 0 ? (
-              <div className="bg-white dark:bg-[#111726] border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center max-w-lg mx-auto flex flex-col items-center gap-3">
-                <AlertTriangle className="h-8 w-8 text-amber-500" />
-                <h3 className="font-bold text-slate-700 dark:text-slate-300">No Results Found</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-                  We couldn&apos;t find matches for &ldquo;{searchQuery}&rdquo; in your active study notes or compiled PYQ banks. Adjust spelling or upload more papers!
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Note Matches */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-indigo-500" />
-                    Study Library Matches ({noteHits.length})
-                  </h3>
-                  <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                    {noteHits.map((hit, i) => (
-                      <div
-                        key={i}
-                        className="bg-white dark:bg-[#111726]/60 rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:border-indigo-500/35 transition duration-150 relative group"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-500 uppercase">
-                            {hit.subject}
-                          </span>
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                            Source: {hit.source}
-                          </span>
-                        </div>
-                        <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-200">
-                          {hit.topic}
-                        </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-mono leading-relaxed bg-slate-50/50 dark:bg-slate-950/30 p-2.5 rounded border border-slate-100 dark:border-slate-900">
-                          {hit.snippet}
-                        </p>
-                        <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-900">
-                          <a
-                            href={`/subject?subject=${encodeURIComponent(hit.subject)}`}
-                            className="text-[10px] font-extrabold text-indigo-500 hover:text-indigo-400 flex items-center gap-1.5"
-                          >
-                            Open Binder <ExternalLink className="h-3 w-3" />
-                          </a>
-                          <a
-                            href={`/quiz?topic=${encodeURIComponent(hit.topic)}&subject=${encodeURIComponent(hit.subject)}`}
-                            className="text-[10px] font-extrabold text-indigo-500 hover:text-indigo-400 flex items-center gap-1.5"
-                          >
-                            Take Quiz <Award className="h-3 w-3" />
-                          </a>
-                        </div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">No matches found</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                No results for &ldquo;{searchQuery}&rdquo; in your notes or past papers.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 text-slate-500">
+                  <BookOpen className="h-3.5 w-3.5 text-indigo-500" />
+                  Notes &mdash; {noteHits.length} hits
+                </h3>
+                <div className="space-y-3 max-h-[520px] overflow-y-auto pr-2 custom-scrollbar">
+                  {noteHits.map((hit, i) => (
+                    <div key={i} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:shadow-md transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300">
+                          {hit.subject}
+                        </span>
+                        <span className="text-[10px] text-slate-500">src: {hit.source}</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* PYQ Matches */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-indigo-500" />
-                    PYQ Papers Matches ({pyqHits.length})
-                  </h3>
-                  <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                    {pyqHits.map((hit, i) => (
-                      <div
-                        key={i}
-                        className="bg-white dark:bg-[#111726]/60 rounded-xl border border-slate-200 dark:border-slate-800 p-4 hover:border-indigo-500/35 transition duration-150 group"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-500 uppercase">
-                            {hit.subject}
-                          </span>
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold">
-                            {(hit.sizeBytes / 1024).toFixed(1)} KB
-                          </span>
-                        </div>
-                        <h4 className="font-extrabold text-sm text-slate-800 dark:text-slate-200">
-                          {hit.subject} Past Papers Q&As
-                        </h4>
-                        
-                        <div className="space-y-2 mt-2">
-                          {hit.snippets.map((snip: string, idx: number) => (
-                            <p
-                              key={idx}
-                              className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed italic bg-slate-50/50 dark:bg-slate-950/20 p-2 rounded border border-slate-100 dark:border-slate-900"
-                            >
-                              &ldquo;{snip}&rdquo;
-                            </p>
-                          ))}
-                        </div>
-
-                        <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-900">
-                          <a
-                            href={`/pyq?subject=${encodeURIComponent(hit.subject)}`}
-                            className="text-[10px] font-extrabold text-indigo-500 hover:text-indigo-400 flex items-center gap-1.5"
-                          >
-                            Run Gap Scan <BarChart2 className="h-3 w-3" />
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* GROUPED CATALOG VIEW */
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column: Study Library Catalog */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-indigo-500" />
-                Study Library Notes
-              </h2>
-
-              {studyNotes.length === 0 ? (
-                <div className="p-8 border border-slate-200/50 dark:border-slate-800 rounded-xl text-center bg-white dark:bg-[#111726]/10">
-                  <span className="text-xs text-slate-400 dark:text-slate-500 italic">No notes ingested yet. Go to Upload.</span>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {studyNotes.map((note, index) => (
-                    <div
-                      key={index}
-                      className="bg-white/80 dark:bg-[#111726]/60 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/85 p-5 shadow-sm space-y-4"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-extrabold text-base text-slate-900 dark:text-white">{note.subject}</h3>
-                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 block">
-                            {note.topicCount} Topics • {note.chunkCount} Study segments
-                          </span>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleDeleteSubject(note.subject)}
-                            className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition cursor-pointer"
-                            title="Delete Subject Notes"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                          <a
-                            href={`/subject?subject=${encodeURIComponent(note.subject)}`}
-                            className="p-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 transition"
-                          >
-                            <ArrowRight className="h-4 w-4" />
-                          </a>
-                        </div>
-                      </div>
-
-                      {/* Dropdown topics preview */}
-                      <div className="p-3 bg-slate-50/50 dark:bg-slate-950/20 rounded-xl border border-slate-100 dark:border-slate-900 space-y-1.5 max-h-[160px] overflow-y-auto">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">Chapters List</span>
-                        {note.topics.map((t, idx) => (
-                          <div key={idx} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
-                            <span className="h-1 w-1 bg-indigo-500 rounded-full shrink-0" />
-                            <span className="truncate">{t.split(" - ")[0]}</span>
-                          </div>
-                        ))}
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">{hit.topic}</h4>
+                      <p className="text-xs mt-2 leading-relaxed font-mono p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+                        {hit.snippet}
+                      </p>
+                      <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <a href={`/subject?subject=${encodeURIComponent(hit.subject)}`}
+                          className="text-[11px] font-semibold tracking-wider flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 transition">
+                          Open <ExternalLink className="h-3 w-3" />
+                        </a>
+                        <a href={`/quiz?topic=${encodeURIComponent(hit.topic)}&subject=${encodeURIComponent(hit.subject)}`}
+                          className="text-[11px] font-semibold tracking-wider flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 transition">
+                          Quiz <Award className="h-3 w-3" />
+                        </a>
                       </div>
                     </div>
                   ))}
                 </div>
-              )}
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-[11px] font-bold tracking-widest uppercase flex items-center gap-2 text-slate-500">
+                  <FileText className="h-3.5 w-3.5 text-indigo-500" />
+                  Papers &mdash; {pyqHits.length} hits
+                </h3>
+                <div className="space-y-3 max-h-[520px] overflow-y-auto pr-2 custom-scrollbar">
+                  {pyqHits.map((hit, i) => (
+                    <div key={i} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:shadow-md transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300">{hit.subject}</span>
+                        <span className="text-[10px] font-medium text-slate-500">{(hit.sizeBytes / 1024).toFixed(1)} KB</span>
+                      </div>
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">{hit.subject} Q&amp;A</h4>
+                      <div className="space-y-1.5 mt-2">
+                        {hit.snippets.map((snip, idx) => (
+                          <p key={idx} className="text-xs leading-relaxed italic p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400">
+                            &ldquo;{snip}&rdquo;
+                          </p>
+                        ))}
+                      </div>
+                      <div className="flex gap-4 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <a href={`/pyq?subject=${encodeURIComponent(hit.subject)}`}
+                          className="text-[11px] font-semibold tracking-wider flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 transition">
+                          Gap Scan <BarChart2 className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <div className="space-y-5">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+              <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-indigo-500 to-purple-500" />
+              <h2 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
+                Study Notes
+              </h2>
+              <span className="text-[10px] font-mono font-semibold ml-auto text-slate-500">{subjectCount} items</span>
             </div>
 
-            {/* Right Column: Ingested PYQ Papers */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <FileText className="h-5 w-5 text-indigo-500" />
-                PYQ Question Banks
-              </h2>
-
-              {pyqBanks.length === 0 ? (
-                <div className="p-8 border border-slate-200/50 dark:border-slate-800 rounded-xl text-center bg-white dark:bg-[#111726]/10">
-                  <span className="text-xs text-slate-400 dark:text-slate-500 italic">No past papers scanned yet. Go to PYQ section.</span>
+            {studyNotes.length === 0 ? (
+              <div className="py-16 text-center rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                  <BookOpen className="h-5 w-5 text-slate-400" />
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {pyqBanks.map((bank, index) => (
+                <p className="text-xs text-slate-500">No notes yet. Start by uploading documents.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {studyNotes.map((note, index) => {
+                  const theme = getSubjectTheme(note.subject);
+                  const IconComponent = theme.icon;
+                  const topicList = note.topics.slice(0, 6);
+
+                  return (
                     <div
                       key={index}
-                      className="bg-white/80 dark:bg-[#111726]/60 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800/85 p-5 shadow-sm space-y-4"
+                      className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                      style={{ animationDelay: `${index * 60}ms` }}
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-extrabold text-base text-slate-900 dark:text-white">{bank.subject} PYQ Repository</h3>
-                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 block flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5" /> Updated on {new Date(bank.modifiedAt).toLocaleDateString()}
-                          </span>
+                      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${theme.lightBg}`} />
+                      <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${theme.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                      <div className={`absolute top-0 right-0 w-32 h-32 rounded-full bg-gradient-to-br ${theme.gradient} opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500 -translate-y-12 translate-x-12 pointer-events-none`} />
+
+                      <div className="relative p-5">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                              <IconComponent className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="font-bold text-sm text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                {note.subject}
+                              </h3>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] font-semibold text-slate-500">
+                                  {note.topicCount} chapters
+                                </span>
+                                <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                <span className="text-[10px] font-semibold text-slate-500">
+                                  {note.chunkCount} segments
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 ml-3 shrink-0">
+                            <button
+                              onClick={() => handleDeleteSubject(note.subject)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+                              title="Delete subject">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                            <a
+                              href={`/subject?subject=${encodeURIComponent(note.subject)}`}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition cursor-pointer">
+                              <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                            </a>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
+
+                        {topicList.length > 0 && (
+                          <div className="mt-4 flex flex-wrap gap-1.5">
+                            {topicList.map((t, idx) => (
+                              <span key={idx}
+                                className="text-[10px] px-2.5 py-1 rounded-full font-medium border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 group-hover:border-indigo-200 dark:group-hover:border-indigo-900/50 transition-colors">
+                                {t.split(" - ")[0]}
+                              </span>
+                            ))}
+                            {note.topics.length > 6 && (
+                              <span className="text-[10px] px-2.5 py-1 rounded-full font-medium text-slate-400 bg-slate-100 dark:bg-slate-800">
+                                +{note.topics.length - 6} more
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                            <FileText className="h-3 w-3" />
+                            <span>{note.sources.length} source{note.sources.length !== 1 ? "s" : ""}</span>
+                          </div>
+                          <a
+                            href={`/subject?subject=${encodeURIComponent(note.subject)}`}
+                            className="text-[11px] font-semibold tracking-wider flex items-center gap-1.5 text-indigo-600 hover:text-indigo-500 transition group/link">
+                            Open <ArrowRight className="h-3 w-3 group-hover/link:translate-x-0.5 transition-transform" />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-5">
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+              <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500" />
+              <h2 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
+                Question Archives
+              </h2>
+              <span className="text-[10px] font-mono font-semibold ml-auto text-slate-500">{pyqCount} archives</span>
+            </div>
+
+            {pyqBanks.length === 0 ? (
+              <div className="py-16 text-center rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/30">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-slate-400" />
+                </div>
+                <p className="text-xs text-slate-500">No past papers indexed yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {pyqBanks.map((bank, index) => (
+                  <div
+                    key={index}
+                    className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                    style={{ animationDelay: `${index * 60}ms` }}
+                  >
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-500 -translate-y-12 translate-x-12 pointer-events-none" />
+
+                    <div className="relative p-5">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            <FileText className="h-5 w-5 text-white" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                              {bank.subject} Archives
+                            </h3>
+                            <p className="text-[10px] font-semibold text-slate-500 flex items-center gap-1.5 mt-0.5">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(bank.modifiedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 ml-3 shrink-0">
                           <button
                             onClick={() => handleDeletePyq(bank.fileName)}
-                            className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition cursor-pointer"
-                            title="Delete PYQ Bank"
-                          >
-                            <Trash2 className="h-4 w-4" />
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+                            title="Delete PYQ bank">
+                            <Trash2 className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            onClick={() => handlePreviewPYQ(bank)}
-                            className="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-[10px] font-extrabold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition cursor-pointer"
-                          >
-                            Preview Q&As
+                            onClick={() => {
+                              setPreviewItem({
+                                title: `PYQ Bank: ${bank.subject} (${bank.paperCount} Papers)`,
+                                content: bank.contentPreview || "This past paper is currently empty.",
+                              });
+                            }}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
+                            title="Preview">
+                            <FileText className="h-3.5 w-3.5" />
                           </button>
                           <a
                             href={`/pyq?subject=${encodeURIComponent(bank.subject)}`}
-                            className="p-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 transition"
-                          >
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition cursor-pointer">
                             <BarChart2 className="h-4 w-4" />
                           </a>
                         </div>
                       </div>
 
-                      {/* Stat summary grid */}
-                      <div className="grid grid-cols-3 gap-3 p-3 bg-slate-50/50 dark:bg-slate-950/20 rounded-xl border border-slate-100 dark:border-slate-900 text-center shrink-0">
-                        <div>
-                          <span className="text-[8px] text-slate-400 dark:text-slate-500 block uppercase font-bold">Exam Sheets</span>
-                          <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 mt-0.5 block">{bank.paperCount}</span>
+                      <div className="mt-4 grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800">
+                        <div className="text-center">
+                          <span className="text-[8px] font-bold tracking-wider block uppercase text-slate-500">Papers</span>
+                          <span className="text-base font-bold text-slate-900 dark:text-white">{bank.paperCount}</span>
                         </div>
-                        <div>
-                          <span className="text-[8px] text-slate-400 dark:text-slate-500 block uppercase font-bold">Distilled Q&As</span>
-                          <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 mt-0.5 block">{bank.questionCount}</span>
+                        <div className="text-center">
+                          <span className="text-[8px] font-bold tracking-wider block uppercase text-slate-500">Questions</span>
+                          <span className="text-base font-bold text-slate-900 dark:text-white">{bank.questionCount}</span>
                         </div>
-                        <div>
-                          <span className="text-[8px] text-slate-400 dark:text-slate-500 block uppercase font-bold">File Weight</span>
-                          <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 mt-0.5 block">{(bank.sizeBytes / 1024).toFixed(1)} KB</span>
+                        <div className="text-center">
+                          <span className="text-[8px] font-bold tracking-wider block uppercase text-slate-500">Size</span>
+                          <span className="text-base font-bold text-slate-900 dark:text-white">{(bank.sizeBytes / 1024).toFixed(1)} KB</span>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* PREVIEW MODAL DRAWER OVERLAY */}
-        {previewItem && (
-          <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 flex items-center justify-end">
-            <div className="w-full max-w-xl h-full bg-white dark:bg-[#111726] border-l border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between shadow-2xl relative animate-slide-in">
+                      <div className="mt-4 pt-3 flex justify-end border-t border-slate-100 dark:border-slate-800">
+                        <a
+                          href={`/pyq?subject=${encodeURIComponent(bank.subject)}`}
+                          className="text-[11px] font-semibold tracking-wider flex items-center gap-1.5 text-emerald-600 hover:text-emerald-500 transition group/link">
+                          Gap Scan <ArrowRight className="h-3 w-3 group-hover/link:translate-x-0.5 transition-transform" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {previewItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/30 backdrop-blur-sm">
+          <div className="w-full max-w-xl h-full p-6 flex flex-col bg-white dark:bg-slate-900 shadow-2xl relative border-l border-slate-200 dark:border-slate-800 animate-slide-in-right">
+            <button
+              onClick={() => setPreviewItem(null)}
+              className="absolute top-5 right-5 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+              <X className="h-4 w-4 text-slate-400" />
+            </button>
+
+            <div className="flex-1 space-y-4 mt-4">
+              <div className="flex items-center gap-2 pb-4 border-b border-slate-200 dark:border-slate-800">
+                <FileText className="h-4 w-4 text-indigo-500" />
+                <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                  {previewItem.title}
+                </h3>
+              </div>
+
+              <p className="text-[11px] italic text-slate-500">
+                Compiled Q&amp;A preview from archive:
+              </p>
+
+              <div className="h-[480px] overflow-y-auto text-sm leading-relaxed font-mono p-4 rounded-xl whitespace-pre-wrap custom-scrollbar bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200">
+                {previewItem.content}
+              </div>
+            </div>
+
+            <div className="pt-4 flex justify-end mt-4 border-t border-slate-200 dark:border-slate-800">
               <button
                 onClick={() => setPreviewItem(null)}
-                className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-300 transition cursor-pointer"
-              >
-                <X className="h-5 w-5" />
+                className="px-4 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer">
+                Close
               </button>
-
-              <div className="flex-1 space-y-4">
-                <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800 mt-4">
-                  <FileText className="h-5 w-5 text-indigo-500" />
-                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white">{previewItem.title}</h3>
-                </div>
-                
-                <div className="text-xs text-slate-400 dark:text-slate-500 italic pb-2">
-                  Showing high-yield compiled Q&As preview from repository bank:
-                </div>
-
-                <div className="flex-1 h-[480px] overflow-y-auto text-sm text-slate-800 dark:text-slate-200 prose dark:prose-invert prose-indigo max-w-none font-mono bg-slate-50/50 dark:bg-slate-950/40 p-4 rounded-xl border border-slate-100 dark:border-slate-900 whitespace-pre-wrap leading-relaxed max-h-[500px]">
-                  {previewItem.content}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 mt-4">
-                <button
-                  onClick={() => setPreviewItem(null)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition cursor-pointer"
-                >
-                  Close Preview
-                </button>
-              </div>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </PageLayout>
   );
 }

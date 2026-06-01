@@ -15,6 +15,7 @@
  */
 
 import fs from "fs";
+import { headers as getRequestHeaders } from "next/headers";
 
 // ── Resolve backend URL with Docker-hostname guard ────────────────────────────
 const _rawBackendUrl =
@@ -123,6 +124,71 @@ export interface BackendHealthResponse {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Helper Utilities for Stability and Forwarding
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Safely gathers AI API credential headers from the Next.js active request context.
+ */
+async function getForwardedHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+  try {
+    const contextHeaders = await getRequestHeaders();
+    const targetKeys = [
+      "x-ai-provider",
+      "x-openai-api-key",
+      "x-openai-model",
+      "x-gemini-api-key",
+      "x-gemini-model",
+      "x-ai-api-key",
+      "x-ai-model",
+      "x-groq-api-key",
+      "x-groq-model",
+      "x-openrouter-api-key",
+      "x-openrouter-model",
+      "x-mistral-api-key",
+      "x-mistral-model",
+      "x-deepseek-api-key",
+      "x-deepseek-model",
+      "x-lm-studio-endpoint",
+      "x-lm-studio-model"
+    ];
+    for (const key of targetKeys) {
+      const val = contextHeaders.get(key);
+      if (val) {
+        headers[key] = val;
+      }
+    }
+  } catch {
+    // Graceful fallback when outside active API route context (e.g. static compile checks)
+  }
+  return headers;
+}
+
+/**
+ * Safe parser for HTTP responses to avoid JSON parsing crashes on Bad Gateway HTML pages.
+ */
+async function safeParseResponse<T>(res: Response): Promise<T> {
+  const contentType = res.headers.get("content-type");
+  let data: any = null;
+  if (contentType && contentType.includes("application/json")) {
+    try {
+      data = await res.json();
+    } catch {
+      // Ignore JSON parse errors
+    }
+  }
+  if (!res.ok) {
+    throw new Error(
+      data?.detail || 
+      data?.error || 
+      `HTTP Error ${res.status}: ${res.statusText || "Connection Refused"}`
+    );
+  }
+  return data as T;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Client functions
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -130,9 +196,11 @@ export interface BackendHealthResponse {
  * Check if the backend service is reachable.
  */
 export async function checkBackendHealth(): Promise<BackendHealthResponse> {
-  const res = await fetch(`${BACKEND_URL}/health`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Backend health check failed: ${res.status}`);
-  return res.json();
+  const res = await fetch(`${BACKEND_URL}/health`, { 
+    cache: "no-store",
+    headers: await getForwardedHeaders()
+  });
+  return safeParseResponse<BackendHealthResponse>(res);
 }
 
 /**
@@ -163,15 +231,12 @@ export async function proxyIngest(
 
   const res = await fetch(`${BACKEND_URL}/api/ingest`, {
     method: "POST",
+    headers: await getForwardedHeaders(),
     body,
     // Do NOT set Content-Type manually — fetch sets the correct multipart boundary
   });
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.detail || data.error || `Ingest failed: ${res.status}`);
-  }
-  return data;
+  return safeParseResponse<BackendIngestResponse>(res);
 }
 
 /**
@@ -186,15 +251,15 @@ export async function queryKnowledgeBase(
 ): Promise<BackendQueryResult[]> {
   const res = await fetch(`${BACKEND_URL}/api/query`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      ...await getForwardedHeaders()
+    },
     body: JSON.stringify({ query, subject: subject || null, top_k: topK, use_hyde: useHyDE }),
     cache: "no-store",
   });
 
-  const data: BackendQueryResponse = await res.json();
-  if (!res.ok) {
-    throw new Error((data as unknown as Record<string, unknown>).detail as string || `Query failed: ${res.status}`);
-  }
+  const data = await safeParseResponse<BackendQueryResponse>(res);
   return data.results;
 }
 
@@ -204,9 +269,9 @@ export async function queryKnowledgeBase(
 export async function listSubjects(): Promise<BackendSubjectSummary[]> {
   const res = await fetch(`${BACKEND_URL}/api/subjects`, {
     cache: "no-store",
+    headers: await getForwardedHeaders()
   });
-  const data: BackendSubjectsResponse = await res.json();
-  if (!res.ok) throw new Error(`List subjects failed: ${res.status}`);
+  const data = await safeParseResponse<BackendSubjectsResponse>(res);
   return data.subjects;
 }
 
@@ -218,16 +283,17 @@ export async function getSubjectChunks(
 ): Promise<BackendSubjectResponse> {
   const res = await fetch(
     `${BACKEND_URL}/api/subject/${encodeURIComponent(subject)}`,
-    { cache: "no-store" }
+    { 
+      cache: "no-store",
+      headers: await getForwardedHeaders()
+    }
   );
 
   if (res.status === 404) {
     return { subject, topic_count: 0, topics: {} };
   }
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || `Get subject failed: ${res.status}`);
-  return data;
+  return safeParseResponse<BackendSubjectResponse>(res);
 }
 
 /**
@@ -241,10 +307,11 @@ export async function deleteSubject(
     ? `${BACKEND_URL}/api/subject/${encodeURIComponent(subject)}/topic/${encodeURIComponent(topic)}`
     : `${BACKEND_URL}/api/subject/${encodeURIComponent(subject)}`;
 
-  const res = await fetch(url, { method: "DELETE" });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || `Delete failed: ${res.status}`);
-  return data;
+  const res = await fetch(url, { 
+    method: "DELETE",
+    headers: await getForwardedHeaders()
+  });
+  return safeParseResponse<{ deleted: number }>(res);
 }
 
 /**
@@ -258,11 +325,12 @@ export async function saveSubjectNotesDirectly(
     `${BACKEND_URL}/api/subject/${encodeURIComponent(subject)}/save`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        ...await getForwardedHeaders()
+      },
       body: JSON.stringify({ chunks }),
     }
   );
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || `Save notes failed: ${res.status}`);
-  return data;
+  return safeParseResponse<{ success: boolean; chunks_added: number }>(res);
 }

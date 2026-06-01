@@ -25,7 +25,7 @@ export function getAIConfigFromRequest(req: NextRequest): AIProviderConfig {
   const provider = (req.headers.get("x-ai-provider") || defaultProvider) as any;
   
   const geminiApiKey = req.headers.get("x-gemini-api-key") || serverApiKey || undefined;
-  const geminiModel = req.headers.get("x-gemini-model") || "gemini-2.0-flash";
+  const geminiModel = req.headers.get("x-gemini-model") || "gemini-2.5-flash";
   
   const openaiApiKey = req.headers.get("x-openai-api-key") || process.env.OPENAI_API_KEY || undefined;
   const openaiModel = req.headers.get("x-openai-model") || "gpt-4o-mini";
@@ -116,7 +116,7 @@ export async function generateText(
       temperature: 0.2,
     };
 
-    if (useJson) {
+    if (useJson && (config.provider === "openai" || config.provider === "groq")) {
       body.response_format = { type: "json_object" };
     }
 
@@ -163,7 +163,7 @@ export async function generateText(
     if (!config.geminiApiKey) {
       throw new Error("Gemini API key is required when in Cloud AI mode.");
     }
-    const model = config.geminiModel || "gemini-2.0-flash";
+    const model = config.geminiModel || "gemini-2.5-flash";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${config.geminiApiKey}`;
 
     const contents: any[] = [];

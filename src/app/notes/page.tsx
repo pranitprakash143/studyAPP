@@ -3,11 +3,6 @@
 import { useEffect, useState } from "react";
 import PageLayout from "@/components/PageLayout";
 import PageHeader from "@/components/PageHeader";
-import Card from "@/components/Card";
-import LoadingState from "@/components/LoadingState";
-import EmptyState from "@/components/EmptyState";
-import ErrorAlert from "@/components/ErrorAlert";
-import StatusBadge from "@/components/StatusBadge";
 import {
   BookOpen,
   Search,

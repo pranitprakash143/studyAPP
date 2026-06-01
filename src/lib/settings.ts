@@ -22,7 +22,7 @@ const STORAGE_KEY = "prepagent_settings";
 export const DEFAULT_SETTINGS: UserSettings = {
   provider: "local",
   geminiApiKey: "",
-  geminiModel: "gemini-2.0-flash",
+  geminiModel: "gemini-2.5-flash",
   openaiApiKey: "",
   openaiModel: "gpt-4o-mini",
   groqApiKey: "",
@@ -92,8 +92,7 @@ function cleanHeaderValue(val: string | undefined | null): string {
     .replace(/[^\x20-\x7E]/g, ""); // Allow only printable ASCII characters
 }
 
-export function getAIHeaders(): Record<string, string> {
-  const settings = loadSettings();
+export function getAIHeaders(settings: UserSettings = loadSettings()): Record<string, string> {
   const headers: Record<string, string> = {};
 
   const provider = cleanHeaderValue(settings.provider);
@@ -102,7 +101,7 @@ export function getAIHeaders(): Record<string, string> {
   const geminiKey = cleanHeaderValue(settings.geminiApiKey);
   if (geminiKey) headers["x-gemini-api-key"] = geminiKey;
 
-  const geminiModel = cleanHeaderValue(settings.geminiModel || "gemini-2.0-flash");
+  const geminiModel = cleanHeaderValue(settings.geminiModel || "gemini-2.5-flash");
   if (geminiModel) headers["x-gemini-model"] = geminiModel;
 
   const openaiKey = cleanHeaderValue(settings.openaiApiKey);
@@ -149,7 +148,7 @@ export function getAIHeaders(): Record<string, string> {
     activeModel = settings.openaiModel || "gpt-4o-mini";
   } else if (settings.provider === "cloud") {
     activeKey = settings.geminiApiKey;
-    activeModel = settings.geminiModel || "gemini-2.0-flash";
+    activeModel = settings.geminiModel || "gemini-2.5-flash";
   } else if (settings.provider === "groq") {
     activeKey = settings.groqApiKey;
     activeModel = settings.groqModel || "llama-3.3-70b-versatile";

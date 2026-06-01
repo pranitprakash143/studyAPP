@@ -68,7 +68,7 @@ export interface SearchResult {
  * Performs zero-dependency token-overlap matching.
  */
 export async function searchKnowledgeBase(
-  config: unknown, // Kept in signature for backwards compatibility
+  _config: unknown, // Kept in signature for backwards compatibility
   query: string,
   subjectFilter?: string,
   limit: number = 5

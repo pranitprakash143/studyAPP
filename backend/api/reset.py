@@ -1,7 +1,6 @@
 import logging
 import json
 import os
-import shutil
 from pathlib import Path
 
 from fastapi import APIRouter

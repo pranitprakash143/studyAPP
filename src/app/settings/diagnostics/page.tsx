@@ -4,11 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import PageLayout from "@/components/PageLayout";
 import PageHeader from "@/components/PageHeader";
-import Card from "@/components/Card";
-import LoadingState from "@/components/LoadingState";
-import ErrorAlert from "@/components/ErrorAlert";
-import StatusBadge from "@/components/StatusBadge";
-import TabGroup from "@/components/TabGroup";
 import {
   Terminal,
   ArrowLeft,
@@ -25,7 +20,7 @@ import {
   AlertTriangle,
   FileCode,
 } from "lucide-react";
-import { loadSettings, getAIHeaders } from "@/lib/settings";
+import { getAIHeaders } from "@/lib/settings";
 
 export default function DiagnosticsPortal() {
   const [activeTab, setActiveTab] = useState<"nextjs" | "backend">("nextjs");

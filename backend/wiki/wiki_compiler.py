@@ -45,6 +45,8 @@ from core.llm import generate_text
 
 logger = logging.getLogger(__name__)
 
+_wiki_lock = asyncio.Lock()
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Path resolution — find knowledge_base/ relative to this file
 # Works in both Docker (/app/knowledge_base) and local dev
@@ -381,6 +383,19 @@ async def compile_wiki_from_ingestion(
             "pages": [{"title": str, "subject": str, "path": str}]
         }
     """
+    async with _wiki_lock:
+        return await _compile_wiki_from_ingestion_locked(
+            subject, topic, source_name, subtopic_chunks, formatted_chapters
+        )
+
+
+async def _compile_wiki_from_ingestion_locked(
+    subject: str,
+    topic: str,
+    source_name: str,
+    subtopic_chunks: list[dict],
+    formatted_chapters: list[dict],
+) -> dict:
     WIKI_DIR.mkdir(parents=True, exist_ok=True)
     index = _load_index()
 
@@ -499,75 +514,6 @@ async def compile_wiki_from_ingestion(
             logger.error(f"[WikiCompiler] Failed to save '{chapter_title}': {e}")
             continue
 
-        index = _update_index(
-            index=index,
-            subject=subject,
-            title=compiled_data.get("title", chapter_title),
-            slug=slug,
-            tags=compiled_data.get("tags", []),
-            connections=compiled_data.get("connections", []),
-            sources=all_sources,
-        )
-
-        compiled_pages.append(
-            {
-                "title": compiled_data.get("title", chapter_title),
-                "subject": subject,
-                "slug": slug,
-                "path": str(page_path.relative_to(KB_DIR)),
-            }
-        )
-
-        if not compiled_data:
-            logger.warning(
-                f"[WikiCompiler] Skipping AI for '{chapter_title}' — using fallback content"
-            )
-            # Fallback to simple content when AI fails (e.g. rate limit)
-            raw_content = "\n\n".join([c.get("content", "") for c in chunks])
-            compiled_data = {
-                "title": chapter_title,
-                "summary": "AI compilation failed. Showing raw extracted text.",
-                "key_facts": ["Raw content included below"],
-                "connections": [],
-                "memory_hooks": [],
-                "quick_revision": ["Raw content fallback"],
-            }
-            # Append raw content to summary so it's not empty
-            compiled_data["summary"] += "\n\n" + raw_content[:4000]
-
-        # Build/update frontmatter
-        existing_sources = existing_meta.get("sources", [])
-        if isinstance(existing_sources, str):
-            existing_sources = [existing_sources]
-        all_sources = list(set(existing_sources + [source_name]))
-
-        existing_related = existing_meta.get("related", [])
-        if isinstance(existing_related, str):
-            existing_related = [existing_related]
-        new_related = [
-            c["topic"] for c in compiled_data.get("connections", []) if c.get("topic")
-        ]
-        merged_related = _merge_related(existing_related, new_related)
-
-        meta = {
-            "title": compiled_data.get("title", chapter_title),
-            "subject": subject,
-            "topic": topic,
-            "tags": compiled_data.get("tags", []),
-            "related": merged_related,
-            "sources": all_sources,
-        }
-
-        # Render and save wiki page
-        page_content = _render_wiki_page(meta, compiled_data)
-        try:
-            page_path.write_text(page_content, encoding="utf-8")
-            logger.info(f"[WikiCompiler] Saved wiki page: {page_path.name}")
-        except Exception as e:
-            logger.error(f"[WikiCompiler] Failed to save '{chapter_title}': {e}")
-            continue
-
-        # Update index
         index = _update_index(
             index=index,
             subject=subject,

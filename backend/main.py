@@ -14,11 +14,11 @@ from api.ingest import router as ingest_router
 from api.query import router as query_router
 from api.subjects import router as subjects_router
 from api.wiki import router as wiki_router
-from api.jobs import router as jobs_router
 from api.reset import router as reset_router
 from api.process import router as process_router
 from api.pending_check import router as pending_check_router
 from api.tasks_router import router as tasks_router
+from api.current_affairs import router as current_affairs_router
 
 import os
 from logging.handlers import RotatingFileHandler
@@ -118,6 +118,7 @@ app.add_middleware(
 # ── Request ContextVars Middleware ───────────────────────────────────────────
 from fastapi import Request
 
+
 @app.middleware("http")
 async def add_context_vars(request: Request, call_next):
     from core.context import (
@@ -137,43 +138,43 @@ async def add_context_vars(request: Request, call_next):
         deepseek_api_key_var,
         deepseek_model_var,
     )
-    
+
     provider = request.headers.get("x-ai-provider")
     openai_key = request.headers.get("x-openai-api-key")
     openai_model = request.headers.get("x-openai-model")
     gemini_key = request.headers.get("x-gemini-api-key")
     gemini_model = request.headers.get("x-gemini-model")
-    
+
     ai_key = request.headers.get("x-ai-api-key")
     ai_model = request.headers.get("x-ai-model")
-    
+
     groq_key = request.headers.get("x-groq-api-key")
     groq_model = request.headers.get("x-groq-model")
-    
+
     openrouter_key = request.headers.get("x-openrouter-api-key")
     openrouter_model = request.headers.get("x-openrouter-model")
-    
+
     mistral_key = request.headers.get("x-mistral-api-key")
     mistral_model = request.headers.get("x-mistral-model")
-    
+
     deepseek_key = request.headers.get("x-deepseek-api-key")
     deepseek_model = request.headers.get("x-deepseek-model")
-    
+
     tokens = []
-    
+
     def safe_set(var, val):
         if val:
             tokens.append((var, var.set(val)))
-            
+
     safe_set(ai_provider_var, provider)
     safe_set(openai_api_key_var, openai_key)
     safe_set(openai_model_var, openai_model)
     safe_set(gemini_api_key_var, gemini_key)
     safe_set(gemini_model_var, gemini_model)
-    
+
     safe_set(ai_api_key_var, ai_key)
     safe_set(ai_model_var, ai_model)
-    
+
     safe_set(groq_api_key_var, groq_key)
     safe_set(groq_model_var, groq_model)
     safe_set(openrouter_api_key_var, openrouter_key)
@@ -182,7 +183,7 @@ async def add_context_vars(request: Request, call_next):
     safe_set(mistral_model_var, mistral_model)
     safe_set(deepseek_api_key_var, deepseek_key)
     safe_set(deepseek_model_var, deepseek_model)
-    
+
     try:
         response = await call_next(request)
         return response
@@ -190,14 +191,15 @@ async def add_context_vars(request: Request, call_next):
         for var, token in reversed(tokens):
             var.reset(token)
 
+
 # ── Routers ─────────────────────────────────────────────────────────────────────────────
 app.include_router(health_router, tags=["health"])
 app.include_router(ingest_router, tags=["ingestion"])
 app.include_router(query_router, tags=["search"])
 app.include_router(subjects_router, tags=["subjects"])
 app.include_router(wiki_router, tags=["wiki"])
-app.include_router(jobs_router, tags=["jobs"])
 app.include_router(reset_router, tags=["reset"])
 app.include_router(process_router, tags=["process"])
 app.include_router(pending_check_router, tags=["pending"])
 app.include_router(tasks_router, tags=["tasks"])
+app.include_router(current_affairs_router, tags=["current-affairs"])

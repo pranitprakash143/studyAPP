@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Search, Sparkles, User, Database } from "lucide-react";
+import { Search, Sparkles, Database } from "lucide-react";
 import { useAIConfig } from "@/contexts/AIConfigContext";
 import ProcessingDashboard from "@/components/ProcessingDashboard";
 

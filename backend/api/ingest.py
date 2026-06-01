@@ -98,7 +98,7 @@ async def ingest(
     )
 
     # ── 3. Mark as pending (heavy processing deferred) ───────────────────────
-    entry_id = mark_pending(
+    entry_id = await mark_pending(
         subject=subject,
         topic=topic,
         source_name=source_name,
